@@ -111,9 +111,23 @@ public class MessageApp {
 		String configFilePath = Constants.CONFIGURATION_FILE;
 		File configFile = new File(configFilePath);
 
+		// Vérifier si le fichier de configuration existe
+		if (configFile.exists()) {
+			Properties config = PropertiesManager.loadProperties(configFilePath);
+			String savedPath = config.getProperty(Constants.CONFIGURATION_KEY_EXCHANGE_DIRECTORY);
+
+			// Vérifier si le chemin est valide
+			if (savedPath != null && isValideExchangeDirectory(new File(savedPath))) {
+				initDirectory(savedPath);
+				return;
+			}
+		}
+
+		// Si pas de configuration valide, demander à l'utilisateur
 		File file = this.mMainView.showDirectoryChooser();
+
 		// Initialiser avec le répertoire sélectionné
-		if(isValideExchangeDirectory(file)){
+		if (file != null && isValideExchangeDirectory(file)) {
 			initDirectory(file.getAbsolutePath());
 
 			// Sauvegarder le chemin dans la configuration
@@ -125,7 +139,10 @@ public class MessageApp {
 		}
 	}
 
-	protected void close(){
+	/**
+	 * Ferme proprement l'application
+	 */
+	public void close() {
 		// Arrêter la surveillance du répertoire si active
 		if (mWatchableDirectory != null) {
 			mWatchableDirectory.stopWatching();
@@ -165,9 +182,52 @@ public class MessageApp {
 		mWatchableDirectory.addObserver(mEntityManager);
 	}
 
+	/**
+	 * Change le répertoire d'échange
+	 *
+	 * @param directoryPath Nouveau chemin du répertoire
+	 */
+	public void changeDirectory(String directoryPath) {
+		File file = new File(directoryPath);
+		if (isValideExchangeDirectory(file)) {
+			// Arrêter la surveillance actuelle
+			if (mWatchableDirectory != null) {
+				mWatchableDirectory.stopWatching();
+			}
+
+			// Initialiser avec le nouveau répertoire
+			initDirectory(directoryPath);
+
+			// Sauvegarder dans la configuration
+			String configFilePath = Constants.CONFIGURATION_FILE;
+			Properties config = new File(configFilePath).exists() ?
+					PropertiesManager.loadProperties(configFilePath) :
+					new Properties();
+			config.setProperty(Constants.CONFIGURATION_KEY_EXCHANGE_DIRECTORY, directoryPath);
+			PropertiesManager.writeProperties(config, configFilePath);
+		}
+	}
+
+	/**
+	 * Affiche l'application
+	 */
 	public void show() {
 		if (this.mMainView != null) {
 			this.mMainView.setVisible(true);
 		}
+	}
+
+	/**
+	 * Retourne la base de données
+	 */
+	public IDatabase getDatabase() {
+		return mDatabase;
+	}
+
+	/**
+	 * Retourne le gestionnaire d'entités
+	 */
+	public EntityManager getEntityManager() {
+		return mEntityManager;
 	}
 }

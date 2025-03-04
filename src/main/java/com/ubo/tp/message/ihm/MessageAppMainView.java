@@ -26,16 +26,19 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver {
     private static final String ICON_PATH = "MessageApp/src/main/resources/images/";
 
     /**
-     * Logo de l'application
-     */
-    private ImageIcon appLogo;
-
-    /**
      * Zone de texte pour afficher les logs
      */
     private JTextArea logArea;
 
+    /**
+     * Référence à l'application
+     */
     private MessageApp messageApp;
+
+    /**
+     * Barre de menu de l'application
+     */
+    private MessageAppMenuView appMenu;
 
     /**
      * Constructeur.
@@ -54,17 +57,17 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver {
         this.setSize(800, 600);
         this.setLocationRelativeTo(null);
 
-        // Chargement du logo
         try {
+            // Chargement et définition de l'icône de l'application
             Image logoImage = ImageIO.read(new File(ICON_PATH + "logo_20.png"));
-            this.appLogo = new ImageIcon(logoImage);
             this.setIconImage(logoImage);
         } catch (IOException e) {
             System.err.println("Impossible de charger le logo: " + e.getMessage());
         }
 
-        // Initialisation du menu
-        this.initMenu();
+        // Initialisation du menu (maintenant via un composant séparé)
+        this.appMenu = new MessageAppMenuView(messageApp, this);
+        this.setJMenuBar(this.appMenu);
 
         // Création du panneau principal avec layout BorderLayout
         JPanel mainPanel = new JPanel(new BorderLayout());
@@ -102,109 +105,6 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver {
     }
 
     /**
-     * Initialisation du menu de l'application
-     */
-    private void initMenu() {
-        // Création de la barre de menu
-        JMenuBar menuBar = new JMenuBar();
-
-        // Menu Fichier
-        JMenu fileMenu = new JMenu("Fichier");
-
-        // Élément pour choisir le répertoire d'échange
-        JMenuItem directoryItem = new JMenuItem("Choisir répertoire d'échange");
-        try {
-            directoryItem.setIcon(new ImageIcon(ImageIO.read(new File(ICON_PATH + "editIcon_20.png"))));
-        } catch (IOException e) {
-            System.err.println("Impossible de charger l'icône de dossier: " + e.getMessage());
-        }
-        // Élément pour quitter
-        JMenuItem exitItem = new JMenuItem("Quitter");
-        try {
-            exitItem.setIcon(new ImageIcon(ImageIO.read(new File(ICON_PATH + "exitIcon_20.png"))));
-        } catch (IOException e) {
-            System.err.println("Impossible de charger l'icône de sortie: " + e.getMessage());
-        }
-        exitItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                closeApp();
-            }
-        });
-
-        // Ajout des éléments au menu Fichier
-        fileMenu.add(directoryItem);
-        fileMenu.addSeparator();
-        fileMenu.add(exitItem);
-
-        // Menu Aide
-        JMenu helpMenu = new JMenu("?");
-
-        // Élément À propos
-        JMenuItem aboutItem = new JMenuItem("À propos");
-        try {
-            aboutItem.setIcon(new ImageIcon(ImageIO.read(new File(ICON_PATH + "logo_50.png"))));
-        } catch (IOException e) {
-            System.err.println("Impossible de charger l'icône d'aide: " + e.getMessage());
-        }
-        aboutItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                showAboutDialog();
-            }
-        });
-
-        // Ajout des éléments au menu Aide
-        helpMenu.add(aboutItem);
-
-        // Ajout des menus à la barre de menu
-        menuBar.add(fileMenu);
-        menuBar.add(helpMenu);
-
-        // Définition de la barre de menu pour la fenêtre
-        this.setJMenuBar(menuBar);
-    }
-
-    /**
-     * Affiche la boîte de dialogue "À propos"
-     */
-    private void showAboutDialog() {
-        // Création du panneau personnalisé pour JOptionPane
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-
-        // Panel du haut avec logo et titre
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-
-        // Ajout du titre
-        JLabel titleLabel = new JLabel("UBO M2-TIIL");
-        JLabel deptLabel = new JLabel("Département Informatique");
-        topPanel.add(titleLabel);
-
-        JPanel deptPanel = new JPanel();
-        deptPanel.add(deptLabel);
-
-        // Organisation du panneau
-        panel.add(topPanel, BorderLayout.CENTER);
-        panel.add(deptPanel, BorderLayout.SOUTH);
-
-        // Création de la boîte de dialogue avec JOptionPane
-        JOptionPane optionPane = new JOptionPane(
-                panel,
-                JOptionPane.PLAIN_MESSAGE,
-                JOptionPane.DEFAULT_OPTION,
-                appLogo,
-                new Object[]{"OK"},
-                "OK"
-        );
-
-        // Création d'un JDialog à partir du JOptionPane
-        JDialog dialog = optionPane.createDialog(this, "À propos");
-
-        // Affichage de la boîte de dialogue
-        dialog.setVisible(true);
-    }
-
-    /**
      * Affiche un sélecteur de répertoire
      */
     public File showDirectoryChooser() {
@@ -222,7 +122,10 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver {
         return null;
     }
 
-    public void closeApp(){
+    /**
+     * Ferme l'application après confirmation
+     */
+    public void closeApp() {
         int response = JOptionPane.showConfirmDialog(
                 this,
                 "Voulez-vous vraiment quitter l'application ?",
@@ -259,7 +162,6 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver {
     }
 
     // Implémentation des méthodes de l'interface IDatabaseObserver
-    // Modifiées pour utiliser la méthode log au lieu de System.out.println
 
     @Override
     public void notifyMessageAdded(Message addedMessage) {
