@@ -1,8 +1,6 @@
 package main.java.com.ubo.tp.message.ihm;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -14,6 +12,7 @@ import javax.swing.*;
 import main.java.com.ubo.tp.message.core.database.IDatabaseObserver;
 import main.java.com.ubo.tp.message.datamodel.Message;
 import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.ihm.menu.MessageAppMenuView;
 
 /**
  * Classe de la vue principale de l'application.
