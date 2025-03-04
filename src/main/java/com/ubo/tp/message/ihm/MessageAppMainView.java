@@ -10,13 +10,10 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 
 import main.java.com.ubo.tp.message.core.database.IDatabaseObserver;
-import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
-import main.java.com.ubo.tp.message.core.session.Session;
 import main.java.com.ubo.tp.message.datamodel.Message;
 import main.java.com.ubo.tp.message.datamodel.User;
-import main.java.com.ubo.tp.message.ihm.login.LoginController;
-import main.java.com.ubo.tp.message.ihm.menu.MessageAppMenuView;
+import main.java.com.ubo.tp.message.ihm.menu.directoryChoose.DirectoryChooserView;
 
 /**
  * Classe de la vue principale de l'application.
@@ -39,24 +36,14 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver, ISe
     private MessageApp messageApp;
 
     /**
-     * Barre de menu de l'application
-     */
-    private MessageAppMenuView appMenu;
-
-    /**
-     * Session de l'application
-     */
-    private ISession session;
-
-    /**
-     * Contrôleur du composant de login
-     */
-    private LoginController loginController;
-
-    /**
      * Panneau principal de l'application (après connexion)
      */
     private JPanel mainPanel;
+
+    /**
+     * Composant pour la sélection du répertoire d'échange
+     */
+    private DirectoryChooserView directoryChooserView;
 
     /**
      * Constructeur.
@@ -65,9 +52,14 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver, ISe
         super("MessageApp");
         this.messageApp = messageApp;
 
-        // Création de la session
-        this.session = new Session();
-        this.session.addObserver(this);
+        // S'abonner aux événements de session
+        this.messageApp.getSession().addObserver(this);
+
+        // Initialisation des composants
+        this.directoryChooserView = new DirectoryChooserView(this, messageApp.mDirectoryController);
+
+        // Création du panneau principal
+        this.mainPanel = new JPanel(new BorderLayout());
     }
 
     /**
@@ -87,13 +79,6 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver, ISe
             System.err.println("Impossible de charger le logo: " + e.getMessage());
         }
 
-        // Initialisation du menu (maintenant via un composant séparé)
-        this.appMenu = new MessageAppMenuView(messageApp, this);
-        this.setJMenuBar(this.appMenu);
-
-        // Création du panneau principal avec layout BorderLayout
-        mainPanel = new JPanel(new BorderLayout());
-
         // Création de la zone de texte pour les logs
         logArea = new JTextArea();
         logArea.setEditable(false);
@@ -103,19 +88,14 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver, ISe
         // Ajout de la zone de texte au panneau principal
         mainPanel.add(scrollPane, BorderLayout.CENTER);
 
-        // Initialisation du contrôleur de login
-        loginController = new LoginController(
-                this,
-                messageApp.getDatabase(),
-                messageApp.getEntityManager(),
-                session
-        );
+        // Le menu est maintenant défini par le contrôleur de menu via MessageApp
+    }
 
-        // Configuration du panneau principal comme contenu après connexion
-        loginController.setMainContentView(mainPanel);
-
-        // Initialisation de la vue de login
-        loginController.init();
+    /**
+     * Retourne le panneau principal
+     */
+    public JPanel getMainPanel() {
+        return mainPanel;
     }
 
     /**
@@ -126,7 +106,7 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver, ISe
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String timestamp = sdf.format(new Date());
 
-        // Ajouter le message au début de la zone de texte avec un timestamp
+        // Ajouter le message à la zone de texte avec un timestamp
         SwingUtilities.invokeLater(() -> {
             logArea.append("[" + timestamp + "] " + message + "\n");
             // Auto-scroll vers le bas
@@ -141,18 +121,7 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver, ISe
      * Affiche un sélecteur de répertoire
      */
     public File showDirectoryChooser() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fileChooser.setDialogTitle("Sélectionnez un répertoire d'échange");
-
-        int returnValue = fileChooser.showOpenDialog(this);
-        if (returnValue == JFileChooser.APPROVE_OPTION) {
-            String directoryPath = fileChooser.getSelectedFile().getAbsolutePath();
-            // Transmettre le répertoire sélectionné à l'application
-            this.notifyDirectorySelected(directoryPath);
-            return new File(directoryPath);
-        }
-        return null;
+        return directoryChooserView.showDirectoryChooser();
     }
 
     /**
@@ -173,26 +142,12 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver, ISe
     }
 
     /**
-     * Notifie l'application qu'un répertoire a été sélectionné
-     */
-    private void notifyDirectorySelected(String directoryPath) {
-        log("Répertoire sélectionné: " + directoryPath);
-    }
-
-    /**
      * Déconnecte l'utilisateur courant
      */
     public void logout() {
-        if (session.getConnectedUser() != null) {
-            session.disconnect();
+        if (messageApp.getSession().getConnectedUser() != null) {
+            messageApp.getSession().disconnect();
         }
-    }
-
-    /**
-     * Récupère la session
-     */
-    public ISession getSession() {
-        return this.session;
     }
 
     /**

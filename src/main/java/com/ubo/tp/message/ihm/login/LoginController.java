@@ -30,6 +30,16 @@ public class LoginController implements ISessionObserver {
     private JPanel mainContentView;
 
     /**
+     * Base de données de l'application
+     */
+    private IDatabase database;
+
+    /**
+     * Gestionnaire d'entités
+     */
+    private EntityManager entityManager;
+
+    /**
      * Session
      */
     private ISession session;
@@ -44,16 +54,15 @@ public class LoginController implements ISessionObserver {
      */
     public LoginController(JFrame mainFrame, IDatabase database, EntityManager entityManager, ISession session) {
         this.mainFrame = mainFrame;
+        this.database = database;
+        this.entityManager = entityManager;
         this.session = session;
-
-        // Création de la vue de login
-        this.loginView = new LoginView(database, entityManager, session);
-
-        // Création d'un panneau pour le contenu principal (après connexion)
-        this.mainContentView = new JPanel(new BorderLayout());
 
         // S'inscrire comme observateur de la session
         session.addObserver(this);
+
+        // Création de la vue de login
+        this.loginView = new LoginView(this);
     }
 
     /**
@@ -74,7 +83,19 @@ public class LoginController implements ISessionObserver {
             // Rafraîchit la vue
             contentPane.revalidate();
             contentPane.repaint();
+        } else {
+            // Si un utilisateur est déjà connecté, affiche le contenu principal
+            showMainContent();
         }
+    }
+
+    /**
+     * Définit le panneau de contenu principal à afficher après connexion
+     *
+     * @param mainView Panneau du contenu principal
+     */
+    public void setMainContentView(JPanel mainView) {
+        this.mainContentView = mainView;
     }
 
     /**
@@ -96,13 +117,104 @@ public class LoginController implements ISessionObserver {
     }
 
     /**
-     * Définit le panneau de contenu principal à afficher après connexion
+     * Tente de connecter un utilisateur
      *
-     * @param mainView Panneau du contenu principal
+     * @param tag Tag de l'utilisateur
+     * @param password Mot de passe de l'utilisateur
+     * @return Message d'erreur ou null si la connexion est réussie
      */
-    public void setMainContentView(JPanel mainView) {
-        this.mainContentView.removeAll();
-        this.mainContentView.add(mainView, BorderLayout.CENTER);
+    public String attemptLogin(String tag, String password) {
+        if (tag.isEmpty()) {
+            return "Veuillez entrer votre tag utilisateur";
+        }
+
+        // Recherche de l'utilisateur dans la base de données par son tag
+        User foundUser = null;
+        for (User user : database.getUsers()) {
+            if (user.getUserTag().equals(tag)) {
+                foundUser = user;
+                break;
+            }
+        }
+
+        if (foundUser == null) {
+            return "Utilisateur introuvable";
+        }
+
+        // Vérification du mot de passe (dans un vrai système, il faudrait hasher)
+        if (!foundUser.getUserPassword().equals(password)) {
+            return "Mot de passe incorrect";
+        }
+
+        // Connexion réussie
+        session.connect(foundUser);
+        return null; // Pas d'erreur
+    }
+
+    /**
+     * Tente d'inscrire un nouvel utilisateur
+     *
+     * @param name Nom de l'utilisateur
+     * @param tag Tag de l'utilisateur
+     * @param password Mot de passe de l'utilisateur
+     * @param avatarPath Chemin de l'avatar de l'utilisateur
+     * @return Message d'erreur ou null si l'inscription est réussie
+     */
+    public String attemptRegister(String name, String tag, String password, String avatarPath) {
+        // Validation des champs obligatoires
+        if (name.isEmpty() || tag.isEmpty()) {
+            return "Le nom et le tag sont obligatoires";
+        }
+
+        // Vérification que le tag n'existe pas déjà
+        for (User existingUser : database.getUsers()) {
+            if (existingUser.getUserTag().equals(tag)) {
+                return "Ce tag utilisateur existe déjà";
+            }
+        }
+
+        // Création du nouvel utilisateur
+        User newUser = createUser(name, tag, password, avatarPath);
+
+        // Ajout à la base de données
+        database.addUser(newUser);
+
+        // Génération du fichier utilisateur
+        entityManager.writeUserFile(newUser);
+
+        // Connexion automatique de l'utilisateur
+        session.connect(newUser);
+
+        return null; // Pas d'erreur
+    }
+
+    /**
+     * Crée un nouvel utilisateur
+     *
+     * @param name Nom de l'utilisateur
+     * @param tag Tag de l'utilisateur
+     * @param password Mot de passe de l'utilisateur
+     * @param avatarPath Chemin de l'avatar de l'utilisateur
+     * @return Le nouvel utilisateur créé
+     */
+    private User createUser(String name, String tag, String password, String avatarPath) {
+        java.util.UUID newUserId = java.util.UUID.randomUUID();
+        java.util.Set<String> emptyFollows = new java.util.HashSet<>();
+        return new User(newUserId, tag, password, name, emptyFollows, avatarPath);
+    }
+
+    /**
+     * Retourne la base de données
+     */
+    public IDatabase getDatabase() {
+        return database;
+    }
+
+    /**
+     * Retourne la session
+     */
+    public ISession getSession() {
+        return session;
     }
 
     /**

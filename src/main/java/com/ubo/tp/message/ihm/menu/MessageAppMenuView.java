@@ -1,8 +1,4 @@
 package main.java.com.ubo.tp.message.ihm.menu;
-import main.java.com.ubo.tp.message.ihm.MessageApp;
-import main.java.com.ubo.tp.message.ihm.MessageAppMainView;
-import main.java.com.ubo.tp.message.datamodel.User;
-import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -11,13 +7,11 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-
 /**
- * Classe qui gère le menu de l'application MessageApp.
+ * Classe qui gère l'affichage du menu de l'application MessageApp.
+ * Responsable uniquement de l'interface utilisateur du menu.
  */
-public class MessageAppMenuView extends JMenuBar implements ISessionObserver {
+public class MessageAppMenuView extends JMenuBar {
 
     /**
      * Chemin vers les icônes
@@ -25,19 +19,9 @@ public class MessageAppMenuView extends JMenuBar implements ISessionObserver {
     private static final String ICON_PATH = "MessageApp/src/main/resources/images/";
 
     /**
-     * Logo de l'application
+     * Contrôleur du menu
      */
-    private ImageIcon appLogo;
-
-    /**
-     * Référence vers l'application
-     */
-    private MessageApp messageApp;
-
-    /**
-     * Référence vers la vue principale
-     */
-    private MessageAppMainView mainView;
+    private MenuController menuController;
 
     /**
      * Menu Compte (dynamique selon connexion)
@@ -55,29 +39,12 @@ public class MessageAppMenuView extends JMenuBar implements ISessionObserver {
     private JMenuItem profileItem;
 
     /**
-     * Utilisateur actuellement connecté
-     */
-    private User connectedUser;
-
-    /**
      * Constructeur.
      *
-     * @param messageApp L'application MessageApp
-     * @param mainView La vue principale de l'application
+     * @param menuController Le contrôleur du menu
      */
-    public MessageAppMenuView(MessageApp messageApp, MessageAppMainView mainView) {
-        this.messageApp = messageApp;
-        this.mainView = mainView;
-
-        // S'abonner aux événements de session
-        mainView.getSession().addObserver(this);
-
-        // Chargement du logo
-        try {
-            appLogo = new ImageIcon(ImageIO.read(new File(ICON_PATH + "logo_20.png")));
-        } catch (IOException e) {
-            System.err.println("Impossible de charger le logo: " + e.getMessage());
-        }
+    public MessageAppMenuView(MenuController menuController) {
+        this.menuController = menuController;
 
         // Initialisation du menu
         this.initMenu();
@@ -100,7 +67,7 @@ public class MessageAppMenuView extends JMenuBar implements ISessionObserver {
         directoryItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                mainView.showDirectoryChooser();
+                menuController.chooseDirectory();
             }
         });
 
@@ -114,7 +81,7 @@ public class MessageAppMenuView extends JMenuBar implements ISessionObserver {
         exitItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                mainView.closeApp();
+                menuController.exit();
             }
         });
 
@@ -137,7 +104,7 @@ public class MessageAppMenuView extends JMenuBar implements ISessionObserver {
         profileItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                showUserProfile();
+                menuController.showProfile();
             }
         });
 
@@ -151,7 +118,7 @@ public class MessageAppMenuView extends JMenuBar implements ISessionObserver {
         logoutItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                mainView.logout();
+                menuController.logout();
             }
         });
 
@@ -173,7 +140,7 @@ public class MessageAppMenuView extends JMenuBar implements ISessionObserver {
         aboutItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                showAboutDialog();
+                menuController.showAbout();
             }
         });
 
@@ -186,109 +153,20 @@ public class MessageAppMenuView extends JMenuBar implements ISessionObserver {
         this.add(helpMenu);
 
         // Vérification initiale de l'état de connexion
-        updateMenuState();
+        updateMenuState(menuController.isUserConnected());
     }
 
     /**
      * Met à jour l'état du menu en fonction de la connexion
+     * Cette méthode est appelée par le contrôleur
+     *
+     * @param isConnected true si un utilisateur est connecté, false sinon
      */
-    private void updateMenuState() {
-        boolean isConnected = connectedUser != null;
+    public void updateMenuState(boolean isConnected) {
         accountMenu.setVisible(isConnected);
 
         // Rafraîchir la barre de menu
         this.revalidate();
         this.repaint();
-    }
-
-    /**
-     * Affiche les informations du profil utilisateur
-     */
-    private void showUserProfile() {
-        if (connectedUser != null) {
-            StringBuilder profileInfo = new StringBuilder();
-            profileInfo.append("Nom: ").append(connectedUser.getName()).append("\n");
-            profileInfo.append("Tag: @").append(connectedUser.getUserTag()).append("\n");
-            profileInfo.append("Abonnements: ").append(connectedUser.getFollows().size()).append("\n");
-            profileInfo.append("Followers: ").append(messageApp.getDatabase().getFollowersCount(connectedUser)).append("\n");
-            if(connectedUser.getAvatarPath() != null && !connectedUser.getAvatarPath().isEmpty()){
-                try {
-                    ImageIcon profilLogo = new ImageIcon(ImageIO.read(new File(connectedUser.getAvatarPath())));
-                    JOptionPane.showMessageDialog(
-                            mainView,
-                            profileInfo.toString(),
-                            "Profil de " + connectedUser.getName(),
-                            JOptionPane.INFORMATION_MESSAGE,
-                            profilLogo
-                    );
-                } catch (IOException e) {
-                    System.err.println("Impossible de charger l'avatar: " + e.getMessage());
-                }
-            } else {
-                JOptionPane.showMessageDialog(
-                        mainView,
-                        profileInfo.toString(),
-                        "Profil de " + connectedUser.getName(),
-                        JOptionPane.INFORMATION_MESSAGE,
-                        appLogo
-                );
-            }
-
-
-
-        }
-    }
-
-    /**
-     * Affiche la boîte de dialogue "À propos"
-     */
-    private void showAboutDialog() {
-        // Création du panneau personnalisé pour JOptionPane
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-
-        // Panel du haut avec titre
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-
-        // Ajout du titre
-        JLabel titleLabel = new JLabel("UBO M2-TIIL");
-        JLabel deptLabel = new JLabel("Département Informatique");
-        topPanel.add(titleLabel);
-
-        JPanel deptPanel = new JPanel();
-        deptPanel.add(deptLabel);
-
-        // Organisation du panneau
-        panel.add(topPanel, BorderLayout.CENTER);
-        panel.add(deptPanel, BorderLayout.SOUTH);
-
-        // Création de la boîte de dialogue avec JOptionPane
-        JOptionPane optionPane = new JOptionPane(
-                panel,
-                JOptionPane.PLAIN_MESSAGE,
-                JOptionPane.DEFAULT_OPTION,
-                appLogo,
-                new Object[]{"OK"},
-                "OK"
-        );
-
-        // Création d'un JDialog à partir du JOptionPane
-        JDialog dialog = optionPane.createDialog(mainView, "À propos");
-
-        // Affichage de la boîte de dialogue
-        dialog.setVisible(true);
-    }
-
-    // Implémentation des méthodes de l'interface ISessionObserver
-
-    @Override
-    public void notifyLogin(User connectedUser) {
-        this.connectedUser = connectedUser;
-        updateMenuState();
-    }
-
-    @Override
-    public void notifyLogout() {
-        this.connectedUser = null;
-        updateMenuState();
     }
 }

@@ -9,6 +9,13 @@ import main.java.com.ubo.tp.message.core.EntityManager;
 import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.directory.IWatchableDirectory;
 import main.java.com.ubo.tp.message.core.directory.WatchableDirectory;
+import main.java.com.ubo.tp.message.core.session.ISession;
+import main.java.com.ubo.tp.message.core.session.Session;
+import main.java.com.ubo.tp.message.ihm.login.LoginController;
+import main.java.com.ubo.tp.message.ihm.menu.MenuController;
+import main.java.com.ubo.tp.message.ihm.menu.about.AboutController;
+import main.java.com.ubo.tp.message.ihm.menu.directoryChoose.DirectoryController;
+import main.java.com.ubo.tp.message.ihm.menu.profile.ProfileController;
 
 import javax.swing.UIManager;
 
@@ -35,6 +42,36 @@ public class MessageApp {
 	protected MessageAppMainView mMainView;
 
 	/**
+	 * Session de l'application.
+	 */
+	protected ISession mSession;
+
+	/**
+	 * Contrôleur de profil.
+	 */
+	protected ProfileController mProfileController;
+
+	/**
+	 * Contrôleur de répertoire.
+	 */
+	protected DirectoryController mDirectoryController;
+
+	/**
+	 * Contrôleur "À propos".
+	 */
+	protected AboutController mAboutController;
+
+	/**
+	 * Contrôleur du menu.
+	 */
+	protected MenuController mMenuController;
+
+	/**
+	 * Contrôleur de login.
+	 */
+	protected LoginController mLoginController;
+
+	/**
 	 * Classe de surveillance de répertoire
 	 */
 	protected IWatchableDirectory mWatchableDirectory;
@@ -58,6 +95,9 @@ public class MessageApp {
 	public MessageApp(IDatabase database, EntityManager entityManager) {
 		this.mDatabase = database;
 		this.mEntityManager = entityManager;
+
+		// Création de la session
+		this.mSession = new Session();
 	}
 
 	/**
@@ -67,11 +107,24 @@ public class MessageApp {
 		// Init du look and feel de l'application
 		this.initLookAndFeel();
 
+		// Initialisation des contrôleurs
+		this.initControllers();
+
 		// Initialisation de l'IHM
 		this.initGui();
 
 		// Initialisation du répertoire d'échange
 		this.initDirectory();
+	}
+
+	/**
+	 * Initialisation des contrôleurs.
+	 */
+	protected void initControllers() {
+		// Création des contrôleurs pour les différentes parties de l'application
+		this.mDirectoryController = new DirectoryController(this);
+		this.mAboutController = new AboutController();
+		this.mProfileController = new ProfileController(this.mDatabase);
 	}
 
 	/**
@@ -93,8 +146,28 @@ public class MessageApp {
 		// Création de la vue principale
 		this.mMainView = new MessageAppMainView(this);
 
+		// Initialisation des contrôleurs qui nécessitent la vue principale
+		this.mLoginController = new LoginController(this.mMainView, this.mDatabase, this.mEntityManager, this.mSession);
+		this.mMenuController = new MenuController(
+				this.mMainView,
+				this.mSession,
+				this.mProfileController,
+				this.mDirectoryController,
+				this.mAboutController
+		);
+
 		// Ajout des observateurs à la base de données
 		this.mDatabase.addObserver(this.mMainView);
+
+		// Configuration du menu de l'application
+		this.mMainView.setJMenuBar(this.mMenuController.getMenuView());
+
+		// Initialisation du contrôleur de login
+		this.mLoginController.setMainContentView(this.mMainView.getMainPanel());
+		this.mLoginController.init();
+
+		// Initialisation du contrôleur de menu
+		this.mMenuController.init();
 
 		// Initialisation de la vue principale
 		this.mMainView.init();
@@ -229,5 +302,12 @@ public class MessageApp {
 	 */
 	public EntityManager getEntityManager() {
 		return mEntityManager;
+	}
+
+	/**
+	 * Retourne la session de l'application
+	 */
+	public ISession getSession() {
+		return mSession;
 	}
 }

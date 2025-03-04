@@ -12,29 +12,17 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+
 
 /**
- * Composant gérant la connexion et l'inscription des utilisateurs
+ * Composant gérant l'affichage de la connexion et de l'inscription des utilisateurs
  */
 public class LoginView extends JPanel {
 
     /**
-     * Référence vers la base de données
+     * Référence vers le contrôleur de login
      */
-    private IDatabase database;
-
-    /**
-     * Référence vers le gestionnaire d'entités
-     */
-    private EntityManager entityManager;
-
-    /**
-     * Référence vers la session
-     */
-    private ISession session;
+    private LoginController loginController;
 
     /**
      * Panneau de contenu principal
@@ -64,14 +52,10 @@ public class LoginView extends JPanel {
     /**
      * Constructeur
      *
-     * @param database Base de données de l'application
-     * @param entityManager Gestionnaire d'entités
-     * @param session Session de l'application
+     * @param loginController Contrôleur de login
      */
-    public LoginView(IDatabase database, EntityManager entityManager, ISession session) {
-        this.database = database;
-        this.entityManager = entityManager;
-        this.session = session;
+    public LoginView(LoginController loginController) {
+        this.loginController = loginController;
 
         this.setLayout(new BorderLayout());
 
@@ -133,7 +117,18 @@ public class LoginView extends JPanel {
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                attemptLogin(tagField.getText(), new String(passwordField.getPassword()));
+                String errorMessage = loginController.attemptLogin(tagField.getText(), new String(passwordField.getPassword()));
+                if (errorMessage != null) {
+                    JOptionPane.showMessageDialog(LoginView.this,
+                            errorMessage,
+                            "Erreur de connexion",
+                            JOptionPane.ERROR_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(LoginView.this,
+                            "Connexion réussie. Bienvenue!",
+                            "Connexion",
+                            JOptionPane.INFORMATION_MESSAGE);
+                }
             }
         });
 
@@ -238,12 +233,24 @@ public class LoginView extends JPanel {
         registerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                attemptRegister(
+                String errorMessage = loginController.attemptRegister(
                         nameField.getText(),
                         tagField.getText(),
                         new String(passwordField.getPassword()),
                         selectedAvatarPath
                 );
+
+                if (errorMessage != null) {
+                    JOptionPane.showMessageDialog(LoginView.this,
+                            errorMessage,
+                            "Erreur d'inscription",
+                            JOptionPane.ERROR_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(LoginView.this,
+                            "Inscription réussie. Bienvenue " + nameField.getText() + "!",
+                            "Inscription",
+                            JOptionPane.INFORMATION_MESSAGE);
+                }
             }
         });
 
@@ -302,95 +309,5 @@ public class LoginView extends JPanel {
         panel.add(buttonPanel, gbc);
 
         return panel;
-    }
-
-    /**
-     * Tente de connecter l'utilisateur
-     */
-    private void attemptLogin(String tag, String password) {
-        if (tag.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Veuillez entrer votre tag utilisateur",
-                    "Erreur de connexion",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        // Recherche de l'utilisateur dans la base de données par son tag
-        User foundUser = null;
-        for (User user : database.getUsers()) {
-            if (user.getUserTag().equals(tag)) {
-                foundUser = user;
-                break;
-            }
-        }
-
-        if (foundUser == null) {
-            JOptionPane.showMessageDialog(this,
-                    "Utilisateur introuvable",
-                    "Erreur de connexion",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        // Vérification du mot de passe (dans un vrai système, il faudrait hasher)
-        if (!foundUser.getUserPassword().equals(password)) {
-            JOptionPane.showMessageDialog(this,
-                    "Mot de passe incorrect",
-                    "Erreur de connexion",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        // Connexion réussie
-        session.connect(foundUser);
-        JOptionPane.showMessageDialog(this,
-                "Connexion réussie. Bienvenue " + foundUser.getName() + "!",
-                "Connexion",
-                JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    /**
-     * Tente d'inscrire un nouvel utilisateur
-     */
-    private void attemptRegister(String name, String tag, String password, String avatarPath) {
-        // Validation des champs obligatoires
-        if (name.isEmpty() || tag.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Le nom et le tag sont obligatoires",
-                    "Erreur d'inscription",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        // Vérification que le tag n'existe pas déjà
-        for (User existingUser : database.getUsers()) {
-            if (existingUser.getUserTag().equals(tag)) {
-                JOptionPane.showMessageDialog(this,
-                        "Ce tag utilisateur existe déjà",
-                        "Erreur d'inscription",
-                        JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-        }
-
-        // Création du nouvel utilisateur
-        UUID newUserId = UUID.randomUUID();
-        Set<String> emptyFollows = new HashSet<>();
-        User newUser = new User(newUserId, tag, password, name, emptyFollows, avatarPath);
-
-        // Ajout à la base de données
-        database.addUser(newUser);
-
-        // Génération du fichier utilisateur
-        entityManager.writeUserFile(newUser);
-
-        // Connexion automatique de l'utilisateur
-        session.connect(newUser);
-
-        JOptionPane.showMessageDialog(this,
-                "Inscription réussie. Bienvenue " + name + "!",
-                "Inscription",
-                JOptionPane.INFORMATION_MESSAGE);
     }
 }
