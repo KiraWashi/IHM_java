@@ -175,33 +175,24 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver {
         // Panel du haut avec logo et titre
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 
-        // Ajout du logo
-        if (appLogo != null) {
-            Image img = appLogo.getImage();
-            Image newImg = img.getScaledInstance(32, 32, Image.SCALE_SMOOTH);
-            ImageIcon scaledLogo = new ImageIcon(newImg);
-            JLabel logoLabel = new JLabel(scaledLogo);
-            topPanel.add(logoLabel);
-        }
-
         // Ajout du titre
         JLabel titleLabel = new JLabel("UBO M2-TIIL");
         JLabel deptLabel = new JLabel("Département Informatique");
-        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD));
         topPanel.add(titleLabel);
-        topPanel.add(deptLabel);
 
-        // Ajout du texte du département
+        JPanel deptPanel = new JPanel();
+        deptPanel.add(deptLabel);
 
         // Organisation du panneau
         panel.add(topPanel, BorderLayout.CENTER);
+        panel.add(deptPanel, BorderLayout.SOUTH);
 
         // Création de la boîte de dialogue avec JOptionPane
         JOptionPane optionPane = new JOptionPane(
                 panel,
                 JOptionPane.PLAIN_MESSAGE,
                 JOptionPane.DEFAULT_OPTION,
-                null,
+                appLogo,
                 new Object[]{"OK"},
                 "OK"
         );
