@@ -10,14 +10,18 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 
 import main.java.com.ubo.tp.message.core.database.IDatabaseObserver;
+import main.java.com.ubo.tp.message.core.session.ISession;
+import main.java.com.ubo.tp.message.core.session.ISessionObserver;
+import main.java.com.ubo.tp.message.core.session.Session;
 import main.java.com.ubo.tp.message.datamodel.Message;
 import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.ihm.login.LoginController;
 import main.java.com.ubo.tp.message.ihm.menu.MessageAppMenuView;
 
 /**
  * Classe de la vue principale de l'application.
  */
-public class MessageAppMainView extends JFrame implements IDatabaseObserver {
+public class MessageAppMainView extends JFrame implements IDatabaseObserver, ISessionObserver {
 
     /**
      * Chemin vers les icônes
@@ -40,11 +44,30 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver {
     private MessageAppMenuView appMenu;
 
     /**
+     * Session de l'application
+     */
+    private ISession session;
+
+    /**
+     * Contrôleur du composant de login
+     */
+    private LoginController loginController;
+
+    /**
+     * Panneau principal de l'application (après connexion)
+     */
+    private JPanel mainPanel;
+
+    /**
      * Constructeur.
      */
     public MessageAppMainView(MessageApp messageApp) {
         super("MessageApp");
         this.messageApp = messageApp;
+
+        // Création de la session
+        this.session = new Session();
+        this.session.addObserver(this);
     }
 
     /**
@@ -69,7 +92,7 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver {
         this.setJMenuBar(this.appMenu);
 
         // Création du panneau principal avec layout BorderLayout
-        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel = new JPanel(new BorderLayout());
 
         // Création de la zone de texte pour les logs
         logArea = new JTextArea();
@@ -80,8 +103,19 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver {
         // Ajout de la zone de texte au panneau principal
         mainPanel.add(scrollPane, BorderLayout.CENTER);
 
-        // Définition du panneau principal comme contenu de la fenêtre
-        this.setContentPane(mainPanel);
+        // Initialisation du contrôleur de login
+        loginController = new LoginController(
+                this,
+                messageApp.getDatabase(),
+                messageApp.getEntityManager(),
+                session
+        );
+
+        // Configuration du panneau principal comme contenu après connexion
+        loginController.setMainContentView(mainPanel);
+
+        // Initialisation de la vue de login
+        loginController.init();
     }
 
     /**
@@ -146,6 +180,22 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver {
     }
 
     /**
+     * Déconnecte l'utilisateur courant
+     */
+    public void logout() {
+        if (session.getConnectedUser() != null) {
+            session.disconnect();
+        }
+    }
+
+    /**
+     * Récupère la session
+     */
+    public ISession getSession() {
+        return this.session;
+    }
+
+    /**
      * Méthode permettant de rendre la fenêtre visible ou invisible.
      *
      * @param visible
@@ -190,5 +240,23 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver {
     @Override
     public void notifyUserModified(User modifiedUser) {
         log("UTILISATEUR MODIFIÉ : @" + modifiedUser.getUserTag() + " - " + modifiedUser.getName());
+    }
+
+    // Implémentation des méthodes de l'interface ISessionObserver
+
+    @Override
+    public void notifyLogin(User connectedUser) {
+        log("CONNEXION : L'utilisateur @" + connectedUser.getUserTag() + " s'est connecté");
+
+        // Mise à jour du titre de la fenêtre avec le nom de l'utilisateur
+        this.setTitle("MessageApp - " + connectedUser.getName() + " (@" + connectedUser.getUserTag() + ")");
+    }
+
+    @Override
+    public void notifyLogout() {
+        log("DÉCONNEXION : L'utilisateur s'est déconnecté");
+
+        // Réinitialisation du titre de la fenêtre
+        this.setTitle("MessageApp");
     }
 }

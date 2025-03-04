@@ -1,6 +1,8 @@
 package main.java.com.ubo.tp.message.ihm.menu;
 import main.java.com.ubo.tp.message.ihm.MessageApp;
 import main.java.com.ubo.tp.message.ihm.MessageAppMainView;
+import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -8,22 +10,14 @@ import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
+import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 
 /**
  * Classe qui gère le menu de l'application MessageApp.
  */
-public class MessageAppMenuView extends JMenuBar {
+public class MessageAppMenuView extends JMenuBar implements ISessionObserver {
 
     /**
      * Chemin vers les icônes
@@ -46,6 +40,26 @@ public class MessageAppMenuView extends JMenuBar {
     private MessageAppMainView mainView;
 
     /**
+     * Menu Compte (dynamique selon connexion)
+     */
+    private JMenu accountMenu;
+
+    /**
+     * Élément pour se déconnecter
+     */
+    private JMenuItem logoutItem;
+
+    /**
+     * Élément pour voir son profil
+     */
+    private JMenuItem profileItem;
+
+    /**
+     * Utilisateur actuellement connecté
+     */
+    private User connectedUser;
+
+    /**
      * Constructeur.
      *
      * @param messageApp L'application MessageApp
@@ -54,6 +68,9 @@ public class MessageAppMenuView extends JMenuBar {
     public MessageAppMenuView(MessageApp messageApp, MessageAppMainView mainView) {
         this.messageApp = messageApp;
         this.mainView = mainView;
+
+        // S'abonner aux événements de session
+        mainView.getSession().addObserver(this);
 
         // Chargement du logo
         try {
@@ -106,13 +123,50 @@ public class MessageAppMenuView extends JMenuBar {
         fileMenu.addSeparator();
         fileMenu.add(exitItem);
 
+        // Menu Compte (affiché uniquement si un utilisateur est connecté)
+        accountMenu = new JMenu("Compte");
+        accountMenu.setVisible(false); // Caché par défaut
+
+        // Élément pour voir son profil
+        profileItem = new JMenuItem("Mon profil");
+        try {
+            profileItem.setIcon(new ImageIcon(ImageIO.read(new File(ICON_PATH + "logo_20.png"))));
+        } catch (IOException e) {
+            System.err.println("Impossible de charger l'icône de profil: " + e.getMessage());
+        }
+        profileItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showUserProfile();
+            }
+        });
+
+        // Élément pour se déconnecter
+        logoutItem = new JMenuItem("Déconnexion");
+        try {
+            logoutItem.setIcon(new ImageIcon(ImageIO.read(new File(ICON_PATH + "exitIcon_20.png"))));
+        } catch (IOException e) {
+            System.err.println("Impossible de charger l'icône de déconnexion: " + e.getMessage());
+        }
+        logoutItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mainView.logout();
+            }
+        });
+
+        // Ajout des éléments au menu Compte
+        accountMenu.add(profileItem);
+        accountMenu.addSeparator();
+        accountMenu.add(logoutItem);
+
         // Menu Aide
         JMenu helpMenu = new JMenu("?");
 
         // Élément À propos
         JMenuItem aboutItem = new JMenuItem("À propos");
         try {
-            aboutItem.setIcon(new ImageIcon(ImageIO.read(new File(ICON_PATH + "logo_50.png"))));
+            aboutItem.setIcon(new ImageIcon(ImageIO.read(new File(ICON_PATH + "logo_20.png"))));
         } catch (IOException e) {
             System.err.println("Impossible de charger l'icône d'aide: " + e.getMessage());
         }
@@ -128,7 +182,61 @@ public class MessageAppMenuView extends JMenuBar {
 
         // Ajout des menus à la barre de menu
         this.add(fileMenu);
+        this.add(accountMenu);
         this.add(helpMenu);
+
+        // Vérification initiale de l'état de connexion
+        updateMenuState();
+    }
+
+    /**
+     * Met à jour l'état du menu en fonction de la connexion
+     */
+    private void updateMenuState() {
+        boolean isConnected = connectedUser != null;
+        accountMenu.setVisible(isConnected);
+
+        // Rafraîchir la barre de menu
+        this.revalidate();
+        this.repaint();
+    }
+
+    /**
+     * Affiche les informations du profil utilisateur
+     */
+    private void showUserProfile() {
+        if (connectedUser != null) {
+            StringBuilder profileInfo = new StringBuilder();
+            profileInfo.append("Nom: ").append(connectedUser.getName()).append("\n");
+            profileInfo.append("Tag: @").append(connectedUser.getUserTag()).append("\n");
+            profileInfo.append("Abonnements: ").append(connectedUser.getFollows().size()).append("\n");
+            profileInfo.append("Followers: ").append(messageApp.getDatabase().getFollowersCount(connectedUser)).append("\n");
+            if(connectedUser.getAvatarPath() != null && !connectedUser.getAvatarPath().isEmpty()){
+                try {
+                    ImageIcon profilLogo = new ImageIcon(ImageIO.read(new File(connectedUser.getAvatarPath())));
+                    JOptionPane.showMessageDialog(
+                            mainView,
+                            profileInfo.toString(),
+                            "Profil de " + connectedUser.getName(),
+                            JOptionPane.INFORMATION_MESSAGE,
+                            profilLogo
+                    );
+                } catch (IOException e) {
+                    System.err.println("Impossible de charger l'avatar: " + e.getMessage());
+                }
+            } else {
+                JOptionPane.showMessageDialog(
+                        mainView,
+                        profileInfo.toString(),
+                        "Profil de " + connectedUser.getName(),
+                        JOptionPane.INFORMATION_MESSAGE,
+                        appLogo
+                );
+            }
+
+
+
+        }
     }
 
     /**
@@ -168,5 +276,19 @@ public class MessageAppMenuView extends JMenuBar {
 
         // Affichage de la boîte de dialogue
         dialog.setVisible(true);
+    }
+
+    // Implémentation des méthodes de l'interface ISessionObserver
+
+    @Override
+    public void notifyLogin(User connectedUser) {
+        this.connectedUser = connectedUser;
+        updateMenuState();
+    }
+
+    @Override
+    public void notifyLogout() {
+        this.connectedUser = null;
+        updateMenuState();
     }
 }
