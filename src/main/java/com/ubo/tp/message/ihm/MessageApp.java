@@ -9,9 +9,9 @@ import main.java.com.ubo.tp.message.core.EntityManager;
 import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.directory.IWatchableDirectory;
 import main.java.com.ubo.tp.message.core.directory.WatchableDirectory;
-import main.java.com.ubo.tp.message.core.session.Session;
 
-import javax.swing.*;
+import javax.swing.UIManager;
+
 
 /**
  * Classe principale l'application.
@@ -91,7 +91,7 @@ public class MessageApp {
 	 */
 	protected void initGui() {
 		// Création de la vue principale
-		this.mMainView = new MessageAppMainView();
+		this.mMainView = new MessageAppMainView(this);
 
 		// Ajout des observateurs à la base de données
 		this.mDatabase.addObserver(this.mMainView);
@@ -110,53 +110,34 @@ public class MessageApp {
 		// Essayer de charger le répertoire depuis le fichier de configuration
 		String configFilePath = Constants.CONFIGURATION_FILE;
 		File configFile = new File(configFilePath);
-		String savedDirectoryPath = null;
 
-		// Vérifier si le fichier de configuration existe
-		if (configFile.exists()) {
-			Properties config = PropertiesManager.loadProperties(configFilePath);
-			savedDirectoryPath = config.getProperty(Constants.CONFIGURATION_KEY_EXCHANGE_DIRECTORY);
+		File file = this.mMainView.showDirectoryChooser();
+		// Initialiser avec le répertoire sélectionné
+		if(isValideExchangeDirectory(file)){
+			initDirectory(file.getAbsolutePath());
 
-			if (savedDirectoryPath != null && !savedDirectoryPath.isEmpty()) {
-				// Vérifier si le répertoire est valide
-				File directory = new File(savedDirectoryPath);
-				if (isValideExchangeDirectory(directory)) {
-					// Si le répertoire est valide, l'utiliser
-					initDirectory(savedDirectoryPath);
-					return;
-				}
-			}
+			// Sauvegarder le chemin dans la configuration
+			Properties config = configFile.exists() ?
+					PropertiesManager.loadProperties(configFilePath) :
+					new Properties();
+			config.setProperty(Constants.CONFIGURATION_KEY_EXCHANGE_DIRECTORY, file.getAbsolutePath());
+			PropertiesManager.writeProperties(config, configFilePath);
+		}
+	}
+
+	protected void close(){
+		// Arrêter la surveillance du répertoire si active
+		if (mWatchableDirectory != null) {
+			mWatchableDirectory.stopWatching();
 		}
 
-		// Si le fichier de configuration n'existe pas ou si aucun répertoire valide n'a été trouvé
-		// demander à l'utilisateur
-		JFileChooser fileChooser = new JFileChooser();
-		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		fileChooser.setDialogTitle("Sélectionnez un répertoire d'échange");
-
-		boolean directorySelected = false;
-
-		while (!directorySelected) {
-			int result = fileChooser.showOpenDialog(this.mMainView);
-
-			if (result == JFileChooser.APPROVE_OPTION) {
-				File selectedDirectory = fileChooser.getSelectedFile();
-
-				if (isValideExchangeDirectory(selectedDirectory)) {
-					// Initialiser avec le répertoire sélectionné
-					initDirectory(selectedDirectory.getAbsolutePath());
-
-					// Sauvegarder le chemin dans la configuration
-					Properties config = configFile.exists() ?
-							PropertiesManager.loadProperties(configFilePath) :
-							new Properties();
-					config.setProperty(Constants.CONFIGURATION_KEY_EXCHANGE_DIRECTORY, selectedDirectory.getAbsolutePath());
-					PropertiesManager.writeProperties(config, configFilePath);
-
-					directorySelected = true;
-				}
-			}
+		// Fermer la vue
+		if (mMainView != null) {
+			mMainView.dispose();
 		}
+
+		// Quitter l'application
+		System.exit(0);
 	}
 
 	/**

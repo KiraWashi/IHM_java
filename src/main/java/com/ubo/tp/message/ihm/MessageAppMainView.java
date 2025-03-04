@@ -3,8 +3,6 @@ package main.java.com.ubo.tp.message.ihm;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -37,11 +35,14 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver {
      */
     private JTextArea logArea;
 
+    private MessageApp messageApp;
+
     /**
      * Constructeur.
      */
-    public MessageAppMainView() {
+    public MessageAppMainView(MessageApp messageApp) {
         super("MessageApp");
+        this.messageApp = messageApp;
     }
 
     /**
@@ -67,8 +68,6 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver {
 
         // Création du panneau principal avec layout BorderLayout
         JPanel mainPanel = new JPanel(new BorderLayout());
-
-
 
         // Création de la zone de texte pour les logs
         logArea = new JTextArea();
@@ -119,13 +118,6 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver {
         } catch (IOException e) {
             System.err.println("Impossible de charger l'icône de dossier: " + e.getMessage());
         }
-        directoryItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                showDirectoryChooser();
-            }
-        });
-
         // Élément pour quitter
         JMenuItem exitItem = new JMenuItem("Quitter");
         try {
@@ -136,7 +128,7 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver {
         exitItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.exit(0);
+                closeApp();
             }
         });
 
@@ -224,8 +216,7 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver {
     /**
      * Affiche un sélecteur de répertoire
      */
-    private void showDirectoryChooser() {
-        // Code du sélecteur de répertoire inchangé...
+    public File showDirectoryChooser() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         fileChooser.setDialogTitle("Sélectionnez un répertoire d'échange");
@@ -235,6 +226,22 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver {
             String directoryPath = fileChooser.getSelectedFile().getAbsolutePath();
             // Transmettre le répertoire sélectionné à l'application
             this.notifyDirectorySelected(directoryPath);
+            return new File(directoryPath);
+        }
+        return null;
+    }
+
+    public void closeApp(){
+        int response = JOptionPane.showConfirmDialog(
+                this,
+                "Voulez-vous vraiment quitter l'application ?",
+                "Confirmer la fermeture",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (response == JOptionPane.YES_OPTION) {
+            this.messageApp.close();
         }
     }
 
@@ -242,8 +249,6 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver {
      * Notifie l'application qu'un répertoire a été sélectionné
      */
     private void notifyDirectorySelected(String directoryPath) {
-        // Cette méthode sera implémentée par la classe MessageApp
-        // Ici on pourrait lancer un événement ou appeler une méthode de callback
         log("Répertoire sélectionné: " + directoryPath);
     }
 
