@@ -1,10 +1,5 @@
 package main.java.com.ubo.tp.message.ihm.login;
 
-import main.java.com.ubo.tp.message.core.EntityManager;
-import main.java.com.ubo.tp.message.core.database.IDatabase;
-import main.java.com.ubo.tp.message.core.session.ISession;
-import main.java.com.ubo.tp.message.datamodel.User;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -56,7 +51,6 @@ public class LoginView extends JPanel {
      */
     public LoginView(LoginController loginController) {
         this.loginController = loginController;
-
         this.setLayout(new BorderLayout());
 
         // Initialisation du UI
@@ -125,7 +119,7 @@ public class LoginView extends JPanel {
                             JOptionPane.ERROR_MESSAGE);
                 } else {
                     JOptionPane.showMessageDialog(LoginView.this,
-                            "Connexion réussie. Bienvenue!",
+                            "Connexion réussie!",
                             "Connexion",
                             JOptionPane.INFORMATION_MESSAGE);
                 }

@@ -1,5 +1,6 @@
 package main.java.com.ubo.tp.message.ihm;
 
+import java.awt.*;
 import java.io.File;
 import java.util.Properties;
 
@@ -12,6 +13,7 @@ import main.java.com.ubo.tp.message.core.directory.WatchableDirectory;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.Session;
 import main.java.com.ubo.tp.message.ihm.login.LoginController;
+import main.java.com.ubo.tp.message.ihm.login.LoginView;
 import main.java.com.ubo.tp.message.ihm.menu.MenuController;
 import main.java.com.ubo.tp.message.ihm.menu.about.AboutController;
 import main.java.com.ubo.tp.message.ihm.menu.directoryChoose.DirectoryController;
@@ -70,6 +72,11 @@ public class MessageApp {
 	 * Contrôleur de login.
 	 */
 	protected LoginController mLoginController;
+
+	/**
+	 * Vue de login.
+	 */
+	protected LoginView mLoginView;
 
 	/**
 	 * Classe de surveillance de répertoire
@@ -156,14 +163,23 @@ public class MessageApp {
 				this.mAboutController
 		);
 
+		// Création de la vue de login
+		this.mLoginView = new LoginView(this.mLoginController);
+
 		// Ajout des observateurs à la base de données
 		this.mDatabase.addObserver(this.mMainView);
 
 		// Configuration du menu de l'application
 		this.mMainView.setJMenuBar(this.mMenuController.getMenuView());
 
-		// Initialisation du contrôleur de login
+		// Configuration de la vue de login et du contrôleur
 		this.mLoginController.setMainContentView(this.mMainView.getMainPanel());
+
+		// Ajout de la vue de login au contentPane
+		Container contentPane = this.mMainView.getContentPane();
+		contentPane.add(this.mLoginView, BorderLayout.CENTER);
+
+		// Initialisation du contrôleur de login
 		this.mLoginController.init();
 
 		// Initialisation du contrôleur de menu

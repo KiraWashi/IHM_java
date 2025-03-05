@@ -8,6 +8,8 @@ import main.java.com.ubo.tp.message.datamodel.User;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.HashSet;
+import java.util.UUID;
 
 /**
  * Contrôleur pour gérer le composant de login et la navigation
@@ -18,11 +20,6 @@ public class LoginController implements ISessionObserver {
      * Vue principale de l'application
      */
     private JFrame mainFrame;
-
-    /**
-     * Vue de login
-     */
-    private LoginView loginView;
 
     /**
      * Vue du contenu principal de l'application
@@ -60,31 +57,14 @@ public class LoginController implements ISessionObserver {
 
         // S'inscrire comme observateur de la session
         session.addObserver(this);
-
-        // Création de la vue de login
-        this.loginView = new LoginView(this);
     }
 
     /**
      * Initialise le controller et affiche le composant de login
      */
     public void init() {
-        // Récupère le contentPane
-        Container contentPane = mainFrame.getContentPane();
-
-        // Si l'utilisateur n'est pas déjà connecté, affiche la vue de login
-        if (session.getConnectedUser() == null) {
-            // Vide le contentPane
-            contentPane.removeAll();
-
-            // Affiche la vue de login
-            contentPane.add(loginView, BorderLayout.CENTER);
-
-            // Rafraîchit la vue
-            contentPane.revalidate();
-            contentPane.repaint();
-        } else {
-            // Si un utilisateur est déjà connecté, affiche le contenu principal
+        // Si l'utilisateur est déjà connecté, affiche le contenu principal
+        if (session.getConnectedUser() != null) {
             showMainContent();
         }
     }
@@ -198,23 +178,9 @@ public class LoginController implements ISessionObserver {
      * @return Le nouvel utilisateur créé
      */
     private User createUser(String name, String tag, String password, String avatarPath) {
-        java.util.UUID newUserId = java.util.UUID.randomUUID();
-        java.util.Set<String> emptyFollows = new java.util.HashSet<>();
+        UUID newUserId = UUID.randomUUID();
+        HashSet<String> emptyFollows = new HashSet<>();
         return new User(newUserId, tag, password, name, emptyFollows, avatarPath);
-    }
-
-    /**
-     * Retourne la base de données
-     */
-    public IDatabase getDatabase() {
-        return database;
-    }
-
-    /**
-     * Retourne la session
-     */
-    public ISession getSession() {
-        return session;
     }
 
     /**
@@ -231,7 +197,6 @@ public class LoginController implements ISessionObserver {
      */
     @Override
     public void notifyLogout() {
-        // Réaffiche la vue de login
-        init();
+        // La vue de login est déjà créée et elle sera affichée par l'application principale
     }
 }
