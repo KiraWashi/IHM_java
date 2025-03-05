@@ -90,6 +90,28 @@ public class MessageAppMenuView extends JMenuBar {
         fileMenu.addSeparator();
         fileMenu.add(exitItem);
 
+        // Menu Messagerie (affiché uniquement si un utilisateur est connecté)
+        JMenu messagingMenu = new JMenu("Messagerie");
+        messagingMenu.setVisible(false); // Caché par défaut comme le menu Compte
+
+        // Élément pour afficher les messages
+        JMenuItem messagesItem = new JMenuItem("Afficher les messages");
+        try {
+            messagesItem.setIcon(new ImageIcon(ImageIO.read(new File(ICON_PATH + "message_20.png"))));
+        } catch (IOException e) {
+            System.err.println("Impossible de charger l'icône de messages: " + e.getMessage());
+        }
+        messagesItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                menuController.showMessages();
+            }
+        });
+
+
+        // Ajout des éléments au menu Messagerie
+        messagingMenu.add(messagesItem);
+
         // Menu Compte (affiché uniquement si un utilisateur est connecté)
         accountMenu = new JMenu("Compte");
         accountMenu.setVisible(false); // Caché par défaut
@@ -151,6 +173,7 @@ public class MessageAppMenuView extends JMenuBar {
         this.add(fileMenu);
         this.add(accountMenu);
         this.add(helpMenu);
+        this.add(messagingMenu);
 
         // Vérification initiale de l'état de connexion
         updateMenuState(menuController.isUserConnected());

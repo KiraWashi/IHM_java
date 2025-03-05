@@ -14,6 +14,8 @@ import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.datamodel.Message;
 import main.java.com.ubo.tp.message.datamodel.User;
 import main.java.com.ubo.tp.message.ihm.menu.directoryChoose.DirectoryChooserView;
+import main.java.com.ubo.tp.message.ihm.messages.compose.MessageComposeView;
+import main.java.com.ubo.tp.message.ihm.messages.list.MessageListView;
 
 /**
  * Classe de la vue principale de l'application.
@@ -213,5 +215,32 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver, ISe
 
         // Réinitialisation du titre de la fenêtre
         this.setTitle("MessageApp");
+    }
+
+    // Dans MessageAppMainView.java, ajoutez cette méthode
+
+    /**
+     * Configure le panneau principal pour afficher les messages
+     */
+    public void setupMessagePanel() {
+        // Nettoyer le panneau principal
+        mainPanel.removeAll();
+
+        // Mettre en place le layout
+        mainPanel.setLayout(new BorderLayout());
+
+        // Référence aux composants de message
+        MessageListView messageListView = messageApp.mMessageListView;
+        MessageComposeView messageComposeView = messageApp.mMessageComposeView;
+
+        // Ajouter la liste des messages (occupe la majeure partie de l'écran)
+        mainPanel.add(messageListView, BorderLayout.CENTER);
+
+        // Ajouter le composant de saisie de message (en bas)
+        mainPanel.add(messageComposeView, BorderLayout.SOUTH);
+
+        // Rafraîchir l'affichage
+        mainPanel.revalidate();
+        mainPanel.repaint();
     }
 }
