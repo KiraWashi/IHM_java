@@ -51,7 +51,7 @@ public class MessageListController {
         Collections.sort(messageList, new Comparator<Message>() {
             @Override
             public int compare(Message m1, Message m2) {
-                return Long.compare(m2.getEmissionDate(), m1.getEmissionDate());
+                return Long.compare(m1.getEmissionDate(), m2.getEmissionDate());
             }
         });
 
@@ -92,7 +92,7 @@ public class MessageListController {
         Collections.sort(messageList, new Comparator<Message>() {
             @Override
             public int compare(Message m1, Message m2) {
-                return Long.compare(m2.getEmissionDate(), m1.getEmissionDate());
+                return Long.compare(m1.getEmissionDate(), m2.getEmissionDate());
             }
         });
 
@@ -111,7 +111,6 @@ public class MessageListController {
         }
 
         searchQuery = searchQuery.trim();
-
         Set<Message> searchResults = new HashSet<>();
 
         // Recherche par utilisateur (@...)
@@ -134,24 +133,22 @@ public class MessageListController {
             String tag = searchQuery.substring(1);
             searchResults.addAll(database.getMessagesWithTag(tag));
         }
-        // Recherche générale
+        // Recherche générale (union des deux critères)
         else {
-            // Recherche par utilisateur
+            // Partie 1: Recherche par tous les utilisateurs possibles
             for (User user : database.getUsers()) {
                 if (user.getUserTag().contains(searchQuery) || user.getName().contains(searchQuery)) {
+                    // Messages émis par ces utilisateurs
                     searchResults.addAll(database.getUserMessages(user));
+
+                    // Messages citant ces utilisateurs
+                    searchResults.addAll(database.getMessagesWithUserTag(user.getUserTag()));
                 }
             }
 
-            // Recherche par tag
+            // Partie 2: Recherche pour tous les tags possibles
+            // Considérer le terme comme un tag potentiel
             searchResults.addAll(database.getMessagesWithTag(searchQuery));
-
-            // Recherche dans le texte des messages
-            for (Message message : database.getMessages()) {
-                if (message.getText().contains(searchQuery)) {
-                    searchResults.add(message);
-                }
-            }
         }
 
         // Conversion en liste et tri
@@ -159,7 +156,8 @@ public class MessageListController {
         Collections.sort(messageList, new Comparator<Message>() {
             @Override
             public int compare(Message m1, Message m2) {
-                return Long.compare(m2.getEmissionDate(), m1.getEmissionDate());
+                // Tri par date (plus ancien en premier comme demandé)
+                return Long.compare(m1.getEmissionDate(), m2.getEmissionDate());
             }
         });
 

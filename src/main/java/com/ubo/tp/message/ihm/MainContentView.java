@@ -2,6 +2,8 @@ package main.java.com.ubo.tp.message.ihm;
 
 import java.awt.*;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import main.java.com.ubo.tp.message.core.EntityManager;
 import main.java.com.ubo.tp.message.core.database.IDatabase;
@@ -150,6 +152,18 @@ public class MainContentView extends JPanel implements ISessionObserver {
 
         // Onglet "Utilisateurs"
         tabbedPane.addTab("Utilisateurs", userListView);
+
+        // Ajouter l'écouteur de changement d'onglet
+        tabbedPane.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                // Si on revient à l'onglet du fil d'actualité (index 0)
+                if (tabbedPane.getSelectedIndex() == 0) {
+                    // Rafraîchir la liste des messages
+                    messageListView.refreshMessages();
+                }
+            }
+        });
 
         // Panneau pour l'utilisateur non connecté
         disconnectedPanel = new JPanel(new GridBagLayout());
