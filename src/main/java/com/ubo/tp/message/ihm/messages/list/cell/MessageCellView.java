@@ -12,6 +12,7 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
+import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.datamodel.Message;
 import main.java.com.ubo.tp.message.datamodel.User;
 
@@ -31,14 +32,21 @@ public class MessageCellView extends JPanel {
     private SimpleDateFormat dateFormat;
 
     /**
+     * Session active
+     */
+    private ISession session;
+
+    /**
      * Constructeur
      *
      * @param message Message à afficher
      * @param dateFormat Format de date pour l'affichage
+     * @param session Session active pour déterminer l'utilisateur connecté
      */
-    public MessageCellView(Message message, SimpleDateFormat dateFormat) {
+    public MessageCellView(Message message, SimpleDateFormat dateFormat, ISession session) {
         this.message = message;
         this.dateFormat = dateFormat;
+        this.session = session;
 
         this.initUI();
     }
@@ -47,22 +55,43 @@ public class MessageCellView extends JPanel {
      * Initialisation de l'interface utilisateur
      */
     private void initUI() {
-        this.setLayout(new BorderLayout(10, 5));
-        this.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
-        this.setBorder(new CompoundBorder(
-                new EmptyBorder(5, 2, 5, 2),
-                new CompoundBorder(
-                        new LineBorder(new Color(220, 220, 220), 1, true),
-                        new EmptyBorder(10, 10, 10, 10)
-                )
-        ));
-
         // Récupération des données du message
         User sender = message.getSender();
         String messageText = message.getText();
         Date messageDate = new Date(message.getEmissionDate());
 
-        // Panneau gauche pour l'avatar
+        // Vérifier si le message est de l'utilisateur connecté
+        User connectedUser = session.getConnectedUser();
+        boolean isCurrentUserMessage = connectedUser != null &&
+                message.getSender().equals(connectedUser);
+
+        // Configuration du layout en fonction de l'émetteur du message
+        this.setLayout(new BorderLayout(10, 5));
+        this.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+
+        if (isCurrentUserMessage) {
+            // Message de l'utilisateur connecté
+            this.setBorder(new CompoundBorder(
+                    new EmptyBorder(5, 2, 5, 2),
+                    new CompoundBorder(
+                            new LineBorder(new Color(200, 230, 200), 1, true), // Couleur légèrement verte
+                            new EmptyBorder(10, 10, 10, 10)
+                    )
+            ));
+            this.setBackground(new Color(240, 255, 240)); // Vert très clair
+        } else {
+            // Message des autres utilisateurs
+            this.setBorder(new CompoundBorder(
+                    new EmptyBorder(5, 2, 5, 2),
+                    new CompoundBorder(
+                            new LineBorder(new Color(200, 230, 200), 1, true), // Couleur légèrement verte
+                            new EmptyBorder(10, 10, 10, 10)
+                    )
+            ));
+            this.setBackground(Color.WHITE);
+        }
+
+        // Panneau pour l'avatar
         JPanel avatarPanel = new JPanel(new BorderLayout());
         avatarPanel.setPreferredSize(new Dimension(50, 50));
         avatarPanel.setOpaque(false);
@@ -95,7 +124,6 @@ public class MessageCellView extends JPanel {
         }
 
         avatarPanel.add(avatarLabel, BorderLayout.CENTER);
-        this.add(avatarPanel, BorderLayout.WEST);
 
         // Panneau central pour le contenu du message
         JPanel contentPanel = new JPanel();
@@ -107,7 +135,7 @@ public class MessageCellView extends JPanel {
         headerPanel.setOpaque(false);
 
         // Nom et tag de l'expéditeur
-        JPanel userPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        JPanel userPanel = new JPanel(new FlowLayout(isCurrentUserMessage ? FlowLayout.LEFT : FlowLayout.LEFT, 5, 0));
         userPanel.setOpaque(false);
 
         JLabel nameLabel = new JLabel(sender.getName());
@@ -118,13 +146,19 @@ public class MessageCellView extends JPanel {
 
         userPanel.add(nameLabel);
         userPanel.add(tagLabel);
+
         headerPanel.add(userPanel, BorderLayout.WEST);
 
         // Date du message
         JLabel dateLabel = new JLabel(dateFormat.format(messageDate));
         dateLabel.setFont(dateLabel.getFont().deriveFont(Font.ITALIC, 11));
         dateLabel.setForeground(new Color(100, 100, 100));
-        headerPanel.add(dateLabel, BorderLayout.EAST);
+
+        // Alignement de la date en fonction de l'émetteur
+        JPanel datePanel = new JPanel(new FlowLayout(isCurrentUserMessage ? FlowLayout.RIGHT : FlowLayout.RIGHT, 5, 0));
+        datePanel.setOpaque(false);
+        datePanel.add(dateLabel);
+        headerPanel.add(datePanel, BorderLayout.EAST);
 
         contentPanel.add(headerPanel);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 5)));
@@ -138,22 +172,27 @@ public class MessageCellView extends JPanel {
         textArea.setBackground(new Color(0, 0, 0, 0));
         textArea.setBorder(null);
 
-        // Coloration des tags et mentions
-        highlightTags(textArea);
+        // Alignement du texte en fonction de l'émetteur
+        if (isCurrentUserMessage) {
+            // Pour les messages de l'utilisateur connecté, aligner le texte à droite
+            JPanel textPanel = new JPanel(new BorderLayout());
+            textPanel.setOpaque(false);
+            textPanel.add(textArea, BorderLayout.CENTER);
+            textArea.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+            contentPanel.add(textPanel);
+        } else {
+            contentPanel.add(textArea);
+        }
 
-        contentPanel.add(textArea);
-
-        this.add(contentPanel, BorderLayout.CENTER);
-    }
-
-    /**
-     * Colore les tags (#) et les mentions (@) dans le texte
-     *
-     * @param textArea Zone de texte à colorier
-     */
-    private void highlightTags(JTextArea textArea) {
-        // Cette méthode pourrait être implémentée avec un StyledDocument
-        // pour mettre en évidence les tags et les mentions d'utilisateurs
-        // Mais par simplicité nous utiliserons simplement un JTextArea standard ici
+        // Positionnement de l'avatar et du contenu
+        if (isCurrentUserMessage) {
+            // Pour les messages de l'utilisateur connecté
+            this.add(avatarPanel, BorderLayout.WEST);
+            this.add(contentPanel, BorderLayout.CENTER);
+        } else {
+            // Pour les messages des autres utilisateurs
+            this.add(avatarPanel, BorderLayout.WEST);
+            this.add(contentPanel, BorderLayout.CENTER);
+        }
     }
 }

@@ -199,7 +199,8 @@ public class MessageListView extends JPanel implements IDatabaseObserver, ISessi
         } else {
             // Ajouter chaque message
             for (Message message : messages) {
-                MessageCellView cellView = new MessageCellView(message, dateFormat);
+                // Passer la session au constructeur de MessageCellView
+                MessageCellView cellView = new MessageCellView(message, dateFormat, session);
                 messagesPanel.add(cellView);
 
                 // Ajouter un séparateur
