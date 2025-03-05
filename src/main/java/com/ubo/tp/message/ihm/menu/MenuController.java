@@ -12,6 +12,8 @@ import main.java.com.ubo.tp.message.ihm.menu.directoryChoose.DirectoryController
 import main.java.com.ubo.tp.message.ihm.menu.profile.ProfileController;
 import main.java.com.ubo.tp.message.ihm.menu.profile.ProfileView;
 
+import javax.swing.*;
+
 /**
  * Classe qui gère la logique du menu de l'application.
  * Responsable de la gestion des événements et des interactions entre la vue et le modèle.
@@ -189,6 +191,22 @@ public class MenuController implements ISessionObserver {
         this.connectedUser = null;
         if (menuView != null) {
             menuView.updateMenuState(false);
+        }
+    }
+
+    /**
+     * Méthode appelée quand l'utilisateur veut voir la liste des messages
+     */
+    public void showMessages() {
+        if (connectedUser != null) {
+            mainView.setupMessagePanel();
+        } else {
+            JOptionPane.showMessageDialog(
+                    mainView,
+                    "Vous devez être connecté pour accéder à la messagerie.",
+                    "Non connecté",
+                    JOptionPane.WARNING_MESSAGE
+            );
         }
     }
 }

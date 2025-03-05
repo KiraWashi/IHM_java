@@ -5,6 +5,7 @@ import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.ihm.MessageAppMainView;
 
 import javax.swing.*;
 import java.awt.*;
@@ -90,6 +91,11 @@ public class LoginController implements ISessionObserver {
 
         // Ajoute la vue principale
         contentPane.add(mainContentView, BorderLayout.CENTER);
+
+        // Configure le panneau principal pour afficher les messages
+        if (mainFrame instanceof MessageAppMainView) {
+            ((MessageAppMainView) mainFrame).setupMessagePanel();
+        }
 
         // Rafraîchit la vue
         contentPane.revalidate();

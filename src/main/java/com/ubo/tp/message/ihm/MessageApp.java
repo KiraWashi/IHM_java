@@ -18,6 +18,10 @@ import main.java.com.ubo.tp.message.ihm.menu.MenuController;
 import main.java.com.ubo.tp.message.ihm.menu.about.AboutController;
 import main.java.com.ubo.tp.message.ihm.menu.directoryChoose.DirectoryController;
 import main.java.com.ubo.tp.message.ihm.menu.profile.ProfileController;
+import main.java.com.ubo.tp.message.ihm.messages.compose.MessageComposeController;
+import main.java.com.ubo.tp.message.ihm.messages.compose.MessageComposeView;
+import main.java.com.ubo.tp.message.ihm.messages.list.MessageListController;
+import main.java.com.ubo.tp.message.ihm.messages.list.MessageListView;
 
 import javax.swing.UIManager;
 
@@ -94,6 +98,26 @@ public class MessageApp {
 	protected String mUiClassName;
 
 	/**
+	 * Controller pour la composition de messages
+	 */
+	protected MessageComposeController mMessageComposeController;
+
+	/**
+	 * Vue pour la composition de messages
+	 */
+	protected MessageComposeView mMessageComposeView;
+
+	/**
+	 * Controller pour la liste de messages reçus
+	 */
+	protected MessageListController mMessageListController;
+
+	/**
+	 * Vue pour la liste de messages reçus
+	 */
+	protected MessageListView mMessageListView;
+
+	/**
 	 * Constructeur.
 	 *
 	 * @param entityManager
@@ -128,10 +152,12 @@ public class MessageApp {
 	 * Initialisation des contrôleurs.
 	 */
 	protected void initControllers() {
-		// Création des contrôleurs pour les différentes parties de l'application
+		// Création des contrôleurs existants
 		this.mDirectoryController = new DirectoryController(this);
 		this.mAboutController = new AboutController();
 		this.mProfileController = new ProfileController(this.mDatabase);
+		this.mMessageComposeController = new MessageComposeController(this.mDatabase, this.mEntityManager, this.mSession);
+		this.mMessageListController = new MessageListController(this.mDatabase, this.mSession);
 	}
 
 	/**
@@ -185,8 +211,17 @@ public class MessageApp {
 		// Initialisation du contrôleur de menu
 		this.mMenuController.init();
 
+		// Création des vues de message
+		this.mMessageComposeView = new MessageComposeView(this.mMessageComposeController, this.mSession);
+		this.mMessageListView = new MessageListView(this.mMessageListController, this.mSession);
+
+		// Ajout des observateurs à la base de données pour les messages
+		this.mDatabase.addObserver(this.mMessageListView);
+
 		// Initialisation de la vue principale
 		this.mMainView.init();
+
+
 	}
 
 	/**
