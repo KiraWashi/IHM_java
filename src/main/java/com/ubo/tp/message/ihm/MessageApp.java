@@ -10,6 +10,7 @@ import main.java.com.ubo.tp.message.core.EntityManager;
 import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.directory.IWatchableDirectory;
 import main.java.com.ubo.tp.message.core.directory.WatchableDirectory;
+import main.java.com.ubo.tp.message.core.notification.NotificationController;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.Session;
 import main.java.com.ubo.tp.message.ihm.login.LoginController;
@@ -18,11 +19,6 @@ import main.java.com.ubo.tp.message.ihm.menu.MenuController;
 import main.java.com.ubo.tp.message.ihm.menu.about.AboutController;
 import main.java.com.ubo.tp.message.ihm.menu.directoryChoose.DirectoryController;
 import main.java.com.ubo.tp.message.ihm.menu.profile.ProfileController;
-import main.java.com.ubo.tp.message.ihm.messages.compose.MessageComposeController;
-import main.java.com.ubo.tp.message.ihm.messages.compose.MessageComposeView;
-import main.java.com.ubo.tp.message.ihm.messages.list.MessageListController;
-import main.java.com.ubo.tp.message.ihm.messages.list.MessageListView;
-
 import javax.swing.UIManager;
 
 
@@ -102,6 +98,12 @@ public class MessageApp {
 	 */
 	protected String mUiClassName;
 
+
+	/**
+	 * Controller pour les notifications
+	 */
+	protected NotificationController mNotificationController;
+
 	/**
 	 * Constructeur.
 	 *
@@ -114,6 +116,7 @@ public class MessageApp {
 
 		// Création de la session
 		this.mSession = new Session();
+
 	}
 
 	/**
@@ -141,6 +144,7 @@ public class MessageApp {
 		this.mDirectoryController = new DirectoryController(this);
 		this.mAboutController = new AboutController();
 		this.mProfileController = new ProfileController(this.mDatabase);
+		this.mNotificationController = new NotificationController(this.mDatabase, this.mSession, null);
 	}
 
 	/**
@@ -176,10 +180,8 @@ public class MessageApp {
 		this.mLoginView = new LoginView(this.mLoginController);
 
 		// Création de la vue de contenu principal
-		this.mMainContentView = new MainContentView(this.mDatabase, this.mSession, this.mEntityManager);
-
-		// Ajout des observateurs à la base de données
-		this.mDatabase.addObserver(this.mMainView);
+		this.mMainContentView = new MainContentView(this.mDatabase, this.mSession, this.mEntityManager, this);
+		this.mDatabase.addObserver(this.mNotificationController);
 
 		// Configuration du menu de l'application
 		this.mMainView.setJMenuBar(this.mMenuController.getMenuView());
@@ -279,6 +281,10 @@ public class MessageApp {
 		mWatchableDirectory = new WatchableDirectory(directoryPath);
 		mEntityManager.setExchangeDirectory(directoryPath);
 
+		if (mNotificationController != null) {
+			mNotificationController.setExchangeDirectory(directoryPath);
+		}
+
 		mWatchableDirectory.initWatching();
 		mWatchableDirectory.addObserver(mEntityManager);
 	}
@@ -337,5 +343,12 @@ public class MessageApp {
 	 */
 	public ISession getSession() {
 		return mSession;
+	}
+
+	/**
+	 * Retourne le controller de notifications
+	 */
+	public NotificationController getNotificationController() {
+		return this.mNotificationController;
 	}
 }
