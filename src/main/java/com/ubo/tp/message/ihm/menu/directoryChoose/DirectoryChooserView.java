@@ -42,6 +42,11 @@ public class DirectoryChooserView {
     public File showDirectoryChooser() {
         // Création du sélecteur de fichier
         JFileChooser fileChooser = new JFileChooser();
+
+        // Configurer le JFileChooser pour qu'il s'ouvre à la racine du projet
+        File projectRoot = new File(System.getProperty("user.dir"));
+        fileChooser.setCurrentDirectory(projectRoot);
+
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         fileChooser.setDialogTitle("Sélectionnez un répertoire d'échange");
 
