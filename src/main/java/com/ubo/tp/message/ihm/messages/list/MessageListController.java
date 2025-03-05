@@ -51,7 +51,7 @@ public class MessageListController {
         Collections.sort(messageList, new Comparator<Message>() {
             @Override
             public int compare(Message m1, Message m2) {
-                return Long.compare(m2.getEmissionDate(), m1.getEmissionDate());
+                return Long.compare(m1.getEmissionDate(), m2.getEmissionDate());
             }
         });
 
@@ -92,7 +92,7 @@ public class MessageListController {
         Collections.sort(messageList, new Comparator<Message>() {
             @Override
             public int compare(Message m1, Message m2) {
-                return Long.compare(m2.getEmissionDate(), m1.getEmissionDate());
+                return Long.compare(m1.getEmissionDate(), m2.getEmissionDate());
             }
         });
 

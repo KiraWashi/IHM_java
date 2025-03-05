@@ -217,6 +217,15 @@ public class MessageListView extends JPanel implements IDatabaseObserver, ISessi
         // Rafraîchir l'affichage
         messagesPanel.revalidate();
         messagesPanel.repaint();
+
+        // Défilement automatique vers le bas
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                JScrollBar vertical = scrollPane.getVerticalScrollBar();
+                vertical.setValue(vertical.getMaximum());
+            }
+        });
     }
 
     // Implémentation des méthodes de l'interface IDatabaseObserver

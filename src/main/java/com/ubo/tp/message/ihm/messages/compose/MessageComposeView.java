@@ -247,14 +247,6 @@ public class MessageComposeView extends JPanel implements ISessionObserver {
             // Réinitialiser la zone de texte
             messageTextArea.setText("");
             updateCharacterCount();
-
-            // Message de confirmation
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Message envoyé avec succès !",
-                    "Message envoyé",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
         }
     }
 
