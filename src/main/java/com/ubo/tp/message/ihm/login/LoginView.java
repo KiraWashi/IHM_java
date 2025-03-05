@@ -224,6 +224,7 @@ public class LoginView extends JPanel {
             }
         });
 
+        // Actions des boutons dans le createRegisterPanel()
         registerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -241,9 +242,19 @@ public class LoginView extends JPanel {
                             JOptionPane.ERROR_MESSAGE);
                 } else {
                     JOptionPane.showMessageDialog(LoginView.this,
-                            "Inscription réussie. Bienvenue " + nameField.getText() + "!",
+                            "Inscription réussie! Vous pouvez maintenant vous connecter avec vos identifiants.",
                             "Inscription",
                             JOptionPane.INFORMATION_MESSAGE);
+
+                    // Réinitialiser les champs du formulaire d'inscription
+                    nameField.setText("");
+                    tagField.setText("");
+                    passwordField.setText("");
+                    selectedAvatarPath = "";
+                    avatarPathLabel.setText("Aucun avatar sélectionné");
+
+                    // Retourner à l'écran de connexion
+                    cardLayout.show(contentPanel, LOGIN_CARD);
                 }
             }
         });

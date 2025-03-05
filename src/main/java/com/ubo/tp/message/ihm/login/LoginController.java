@@ -175,8 +175,8 @@ public class LoginController implements ISessionObserver {
         // Génération du fichier utilisateur
         entityManager.writeUserFile(newUser);
 
-        // Connexion automatique de l'utilisateur
-        session.connect(newUser);
+        // Ne plus connecter automatiquement l'utilisateur après l'inscription
+        // session.connect(newUser);
 
         return null; // Pas d'erreur
     }
