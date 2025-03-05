@@ -17,6 +17,21 @@ import main.java.com.ubo.tp.message.ihm.menu.directoryChoose.DirectoryChooserVie
 import main.java.com.ubo.tp.message.ihm.messages.compose.MessageComposeView;
 import main.java.com.ubo.tp.message.ihm.messages.list.MessageListView;
 
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+
+import main.java.com.ubo.tp.message.core.database.IDatabaseObserver;
+import main.java.com.ubo.tp.message.core.session.ISessionObserver;
+import main.java.com.ubo.tp.message.datamodel.Message;
+import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.ihm.menu.directoryChoose.DirectoryChooserView;
+
 /**
  * Classe de la vue principale de l'application.
  */
@@ -28,17 +43,12 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver, ISe
     private static final String ICON_PATH = "MessageApp/src/main/resources/images/";
 
     /**
-     * Zone de texte pour afficher les logs
-     */
-    private JTextArea logArea;
-
-    /**
      * Référence à l'application
      */
     private MessageApp messageApp;
 
     /**
-     * Panneau principal de l'application (après connexion)
+     * Panneau principal de l'application
      */
     private JPanel mainPanel;
 
@@ -46,6 +56,11 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver, ISe
      * Composant pour la sélection du répertoire d'échange
      */
     private DirectoryChooserView directoryChooserView;
+
+    /**
+     * Label pour la barre de statut
+     */
+    private JLabel statusLabel;
 
     /**
      * Constructeur.
@@ -62,6 +77,9 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver, ISe
 
         // Création du panneau principal
         this.mainPanel = new JPanel(new BorderLayout());
+
+        // Création de la barre de statut
+        statusLabel = new JLabel("Prêt");
     }
 
     /**
@@ -70,7 +88,7 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver, ISe
     public void init() {
         // Configuration de la fenêtre
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(800, 600);
+        this.setSize(900, 700); // Fenêtre plus grande pour mieux voir les composants
         this.setLocationRelativeTo(null);
 
         try {
@@ -81,14 +99,12 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver, ISe
             System.err.println("Impossible de charger le logo: " + e.getMessage());
         }
 
-        // Création de la zone de texte pour les logs
-        logArea = new JTextArea();
-        logArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(logArea);
-        scrollPane.setPreferredSize(new Dimension(800, 400));
+        // Ajout d'une barre de statut en bas de la fenêtre pour les notifications
+        JPanel statusPanel = new JPanel(new BorderLayout());
+        statusPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        statusPanel.add(statusLabel, BorderLayout.WEST);
 
-        // Ajout de la zone de texte au panneau principal
-        mainPanel.add(scrollPane, BorderLayout.CENTER);
+        this.add(statusPanel, BorderLayout.SOUTH);
 
         // Le menu est maintenant défini par le contrôleur de menu via MessageApp
     }
@@ -98,25 +114,6 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver, ISe
      */
     public JPanel getMainPanel() {
         return mainPanel;
-    }
-
-    /**
-     * Ajoute un message de log à la zone de texte
-     */
-    private void log(String message) {
-        // Formater avec la date et l'heure
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String timestamp = sdf.format(new Date());
-
-        // Ajouter le message à la zone de texte avec un timestamp
-        SwingUtilities.invokeLater(() -> {
-            logArea.append("[" + timestamp + "] " + message + "\n");
-            // Auto-scroll vers le bas
-            logArea.setCaretPosition(logArea.getDocument().getLength());
-        });
-
-        // Également afficher dans la console pour le débogage
-        System.out.println("[" + timestamp + "] " + message);
     }
 
     /**
@@ -167,43 +164,74 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver, ISe
         });
     }
 
+    /**
+     * Affiche une notification dans la barre de statut
+     *
+     * @param message Message à afficher
+     */
+    private void showNotification(String message) {
+        // Formater avec la date et l'heure
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+        String timestamp = sdf.format(new Date());
+
+        // Mettre à jour le label avec le message
+        final String formattedMessage = "[" + timestamp + "] " + message;
+
+        // Mise à jour du label de statut dans le thread d'interface graphique
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                if (statusLabel != null) {
+                    statusLabel.setText(formattedMessage);
+                }
+            }
+        });
+    }
+
     // Implémentation des méthodes de l'interface IDatabaseObserver
 
     @Override
     public void notifyMessageAdded(Message addedMessage) {
-        log("NOUVEAU MESSAGE : " + addedMessage.getSender().getName() + " - " + addedMessage.getText());
+        // Afficher une notification pour le nouveau message
+        showNotification("Nouveau message de @" + addedMessage.getSender().getUserTag());
     }
 
     @Override
     public void notifyMessageDeleted(Message deletedMessage) {
-        log("MESSAGE SUPPRIMÉ : " + deletedMessage.getSender().getName() + " - " + deletedMessage.getText());
+        // Afficher une notification pour le message supprimé
+        showNotification("Message supprimé");
     }
 
     @Override
     public void notifyMessageModified(Message modifiedMessage) {
-        log("MESSAGE MODIFIÉ : " + modifiedMessage.getSender().getName() + " - " + modifiedMessage.getText());
+        // Afficher une notification pour le message modifié
+        showNotification("Message modifié");
     }
 
     @Override
     public void notifyUserAdded(User addedUser) {
-        log("NOUVEL UTILISATEUR : @" + addedUser.getUserTag() + " - " + addedUser.getName());
+        // Afficher une notification pour le nouvel utilisateur
+        showNotification("Nouvel utilisateur: @" + addedUser.getUserTag());
     }
 
     @Override
     public void notifyUserDeleted(User deletedUser) {
-        log("UTILISATEUR SUPPRIMÉ : @" + deletedUser.getUserTag() + " - " + deletedUser.getName());
+        // Afficher une notification pour l'utilisateur supprimé
+        showNotification("Utilisateur supprimé: @" + deletedUser.getUserTag());
     }
 
     @Override
     public void notifyUserModified(User modifiedUser) {
-        log("UTILISATEUR MODIFIÉ : @" + modifiedUser.getUserTag() + " - " + modifiedUser.getName());
+        // Afficher une notification pour l'utilisateur modifié
+        showNotification("Utilisateur modifié: @" + modifiedUser.getUserTag());
     }
 
     // Implémentation des méthodes de l'interface ISessionObserver
 
     @Override
     public void notifyLogin(User connectedUser) {
-        log("CONNEXION : L'utilisateur @" + connectedUser.getUserTag() + " s'est connecté");
+        // Afficher une notification pour la connexion
+        showNotification("Connexion: @" + connectedUser.getUserTag());
 
         // Mise à jour du titre de la fenêtre avec le nom de l'utilisateur
         this.setTitle("MessageApp - " + connectedUser.getName() + " (@" + connectedUser.getUserTag() + ")");
@@ -211,36 +239,10 @@ public class MessageAppMainView extends JFrame implements IDatabaseObserver, ISe
 
     @Override
     public void notifyLogout() {
-        log("DÉCONNEXION : L'utilisateur s'est déconnecté");
+        // Afficher une notification pour la déconnexion
+        showNotification("Déconnexion");
 
         // Réinitialisation du titre de la fenêtre
         this.setTitle("MessageApp");
-    }
-
-    // Dans MessageAppMainView.java, ajoutez cette méthode
-
-    /**
-     * Configure le panneau principal pour afficher les messages
-     */
-    public void setupMessagePanel() {
-        // Nettoyer le panneau principal
-        mainPanel.removeAll();
-
-        // Mettre en place le layout
-        mainPanel.setLayout(new BorderLayout());
-
-        // Référence aux composants de message
-        MessageListView messageListView = messageApp.mMessageListView;
-        MessageComposeView messageComposeView = messageApp.mMessageComposeView;
-
-        // Ajouter la liste des messages (occupe la majeure partie de l'écran)
-        mainPanel.add(messageListView, BorderLayout.CENTER);
-
-        // Ajouter le composant de saisie de message (en bas)
-        mainPanel.add(messageComposeView, BorderLayout.SOUTH);
-
-        // Rafraîchir l'affichage
-        mainPanel.revalidate();
-        mainPanel.repaint();
     }
 }

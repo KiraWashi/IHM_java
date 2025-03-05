@@ -12,6 +12,18 @@ import java.awt.*;
 import java.util.HashSet;
 import java.util.UUID;
 
+import main.java.com.ubo.tp.message.core.EntityManager;
+import main.java.com.ubo.tp.message.core.database.IDatabase;
+import main.java.com.ubo.tp.message.core.session.ISession;
+import main.java.com.ubo.tp.message.core.session.ISessionObserver;
+import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.ihm.MainContentView;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.HashSet;
+import java.util.UUID;
+
 /**
  * Contrôleur pour gérer le composant de login et la navigation
  */
@@ -25,7 +37,7 @@ public class LoginController implements ISessionObserver {
     /**
      * Vue du contenu principal de l'application
      */
-    private JPanel mainContentView;
+    private MainContentView mainContentView;
 
     /**
      * Base de données de l'application
@@ -73,10 +85,10 @@ public class LoginController implements ISessionObserver {
     /**
      * Définit le panneau de contenu principal à afficher après connexion
      *
-     * @param mainView Panneau du contenu principal
+     * @param mainContentView Panneau du contenu principal
      */
-    public void setMainContentView(JPanel mainView) {
-        this.mainContentView = mainView;
+    public void setMainContentView(MainContentView mainContentView) {
+        this.mainContentView = mainContentView;
     }
 
     /**
@@ -91,11 +103,6 @@ public class LoginController implements ISessionObserver {
 
         // Ajoute la vue principale
         contentPane.add(mainContentView, BorderLayout.CENTER);
-
-        // Configure le panneau principal pour afficher les messages
-        if (mainFrame instanceof MessageAppMainView) {
-            ((MessageAppMainView) mainFrame).setupMessagePanel();
-        }
 
         // Rafraîchit la vue
         contentPane.revalidate();
@@ -203,6 +210,11 @@ public class LoginController implements ISessionObserver {
      */
     @Override
     public void notifyLogout() {
-        // La vue de login est déjà créée et elle sera affichée par l'application principale
+        // Retourner à la vue de login
+        Container contentPane = mainFrame.getContentPane();
+        contentPane.removeAll();
+        contentPane.add(new LoginView(this), BorderLayout.CENTER);
+        contentPane.revalidate();
+        contentPane.repaint();
     }
 }

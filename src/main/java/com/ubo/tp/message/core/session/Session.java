@@ -1,7 +1,7 @@
 package main.java.com.ubo.tp.message.core.session;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import main.java.com.ubo.tp.message.datamodel.User;
 
@@ -19,8 +19,9 @@ public class Session implements ISession {
 
 	/**
 	 * Liste des observateurs de la session.
+	 * Utilisation de CopyOnWriteArrayList pour éviter les ConcurrentModificationException
 	 */
-	protected List<ISessionObserver> mObservers = new ArrayList<>();
+	protected List<ISessionObserver> mObservers = new CopyOnWriteArrayList<>();
 
 	@Override
 	public void addObserver(ISessionObserver observer) {
@@ -41,6 +42,7 @@ public class Session implements ISession {
 	public void connect(User connectedUser) {
 		this.mConnectedUser = connectedUser;
 
+		// Notification aux observateurs
 		for (ISessionObserver observer : mObservers) {
 			observer.notifyLogin(connectedUser);
 		}
@@ -50,6 +52,7 @@ public class Session implements ISession {
 	public void disconnect() {
 		this.mConnectedUser = null;
 
+		// Notification aux observateurs
 		for (ISessionObserver observer : mObservers) {
 			observer.notifyLogout();
 		}

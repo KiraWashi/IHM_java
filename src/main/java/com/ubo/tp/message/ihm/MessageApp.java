@@ -83,6 +83,11 @@ public class MessageApp {
 	protected LoginView mLoginView;
 
 	/**
+	 * Vue du contenu principal après connexion.
+	 */
+	protected MainContentView mMainContentView;
+
+	/**
 	 * Classe de surveillance de répertoire
 	 */
 	protected IWatchableDirectory mWatchableDirectory;
@@ -96,26 +101,6 @@ public class MessageApp {
 	 * Nom de la classe de l'UI.
 	 */
 	protected String mUiClassName;
-
-	/**
-	 * Controller pour la composition de messages
-	 */
-	protected MessageComposeController mMessageComposeController;
-
-	/**
-	 * Vue pour la composition de messages
-	 */
-	protected MessageComposeView mMessageComposeView;
-
-	/**
-	 * Controller pour la liste de messages reçus
-	 */
-	protected MessageListController mMessageListController;
-
-	/**
-	 * Vue pour la liste de messages reçus
-	 */
-	protected MessageListView mMessageListView;
 
 	/**
 	 * Constructeur.
@@ -152,12 +137,10 @@ public class MessageApp {
 	 * Initialisation des contrôleurs.
 	 */
 	protected void initControllers() {
-		// Création des contrôleurs existants
+		// Création des contrôleurs pour les différentes parties de l'application
 		this.mDirectoryController = new DirectoryController(this);
 		this.mAboutController = new AboutController();
 		this.mProfileController = new ProfileController(this.mDatabase);
-		this.mMessageComposeController = new MessageComposeController(this.mDatabase, this.mEntityManager, this.mSession);
-		this.mMessageListController = new MessageListController(this.mDatabase, this.mSession);
 	}
 
 	/**
@@ -192,6 +175,9 @@ public class MessageApp {
 		// Création de la vue de login
 		this.mLoginView = new LoginView(this.mLoginController);
 
+		// Création de la vue de contenu principal
+		this.mMainContentView = new MainContentView(this.mDatabase, this.mSession, this.mEntityManager);
+
 		// Ajout des observateurs à la base de données
 		this.mDatabase.addObserver(this.mMainView);
 
@@ -199,7 +185,7 @@ public class MessageApp {
 		this.mMainView.setJMenuBar(this.mMenuController.getMenuView());
 
 		// Configuration de la vue de login et du contrôleur
-		this.mLoginController.setMainContentView(this.mMainView.getMainPanel());
+		this.mLoginController.setMainContentView(this.mMainContentView);
 
 		// Ajout de la vue de login au contentPane
 		Container contentPane = this.mMainView.getContentPane();
@@ -211,17 +197,8 @@ public class MessageApp {
 		// Initialisation du contrôleur de menu
 		this.mMenuController.init();
 
-		// Création des vues de message
-		this.mMessageComposeView = new MessageComposeView(this.mMessageComposeController, this.mSession);
-		this.mMessageListView = new MessageListView(this.mMessageListController, this.mSession);
-
-		// Ajout des observateurs à la base de données pour les messages
-		this.mDatabase.addObserver(this.mMessageListView);
-
 		// Initialisation de la vue principale
 		this.mMainView.init();
-
-
 	}
 
 	/**
