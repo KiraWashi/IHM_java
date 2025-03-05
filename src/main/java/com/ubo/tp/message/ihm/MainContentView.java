@@ -7,6 +7,7 @@ import javax.swing.event.ChangeListener;
 
 import main.java.com.ubo.tp.message.core.EntityManager;
 import main.java.com.ubo.tp.message.core.database.IDatabase;
+import main.java.com.ubo.tp.message.core.notification.NotificationController;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.datamodel.User;
@@ -14,6 +15,8 @@ import main.java.com.ubo.tp.message.ihm.messages.compose.MessageComposeControlle
 import main.java.com.ubo.tp.message.ihm.messages.compose.MessageComposeView;
 import main.java.com.ubo.tp.message.ihm.messages.list.MessageListController;
 import main.java.com.ubo.tp.message.ihm.messages.list.MessageListView;
+import main.java.com.ubo.tp.message.ihm.notifications.NotificationButton;
+import main.java.com.ubo.tp.message.ihm.notifications.NotificationView;
 import main.java.com.ubo.tp.message.ihm.users.UserController;
 import main.java.com.ubo.tp.message.ihm.users.UserListView;
 
@@ -83,16 +86,33 @@ public class MainContentView extends JPanel implements ISessionObserver {
     private JPanel disconnectedPanel;
 
     /**
+     * Classe qui gère les notification de l'application
+     */
+    private NotificationController notificationController;
+
+    /**
+     * Vue des notifications de l'utilisateur
+     */
+    private NotificationView notificationView;
+
+    /**
+     * Bouton des notifications
+     */
+    private NotificationButton notificationButton;
+
+
+    /**
      * Constructeur
      *
      * @param database Base de données
      * @param session Session active
      * @param entityManager Gestionnaire d'entités
      */
-    public MainContentView(IDatabase database, ISession session, EntityManager entityManager) {
+    public MainContentView(IDatabase database, ISession session, EntityManager entityManager, MessageApp messageApp) {
         this.database = database;
         this.session = session;
         this.entityManager = entityManager;
+        this.notificationController = messageApp.getNotificationController();
 
         // S'abonner aux notifications de session
         this.session.addObserver(this);
@@ -131,6 +151,10 @@ public class MainContentView extends JPanel implements ISessionObserver {
         this.messageComposeView = new MessageComposeView(messageComposeController, session);
         this.messageListView = new MessageListView(messageListController, session);
         this.userListView = new UserListView(userController, session);
+        this.notificationView = new NotificationView(notificationController);
+
+        // Bouton de notification
+        this.notificationButton = new NotificationButton(notificationController);
 
         // Abonnement aux événements de la base de données
         database.addObserver(messageListView);
@@ -141,19 +165,18 @@ public class MainContentView extends JPanel implements ISessionObserver {
 
         // Onglet "Fil d'actualité"
         timelinePanel = new JPanel(new BorderLayout(0, 10));
-
-        // Placer la liste des messages au centre
         timelinePanel.add(messageListView, BorderLayout.CENTER);
-
-        // Placer le champ de saisie en bas
         timelinePanel.add(messageComposeView, BorderLayout.SOUTH);
-
         tabbedPane.addTab("Fil d'actualité", timelinePanel);
 
         // Onglet "Utilisateurs"
         tabbedPane.addTab("Utilisateurs", userListView);
 
-        // Ajouter l'écouteur de changement d'onglet
+        // Onglet "Notifications"
+        tabbedPane.addTab("", notificationView);
+        tabbedPane.setTabComponentAt(2, notificationButton);
+
+        // Écouteur de changement d'onglet
         tabbedPane.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -161,6 +184,11 @@ public class MainContentView extends JPanel implements ISessionObserver {
                 if (tabbedPane.getSelectedIndex() == 0) {
                     // Rafraîchir la liste des messages
                     messageListView.refreshMessages();
+                }
+                // Si on arrive sur l'onglet des notifications (index 2)
+                else if (tabbedPane.getSelectedIndex() == 2) {
+                    // Marquer les notifications comme lues
+                    notificationController.markAllAsRead();
                 }
             }
         });
