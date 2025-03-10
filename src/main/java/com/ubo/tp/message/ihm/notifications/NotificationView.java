@@ -15,10 +15,9 @@ import main.java.com.ubo.tp.message.datamodel.Notification;
  */
 public class NotificationView extends JPanel implements INotificationObserver {
 
-    private NotificationController notificationController;
+    private final NotificationController notificationController;
     private JPanel notificationsPanel;
-    private JScrollPane scrollPane;
-    private SimpleDateFormat dateFormat;
+    private final SimpleDateFormat dateFormat;
 
     /**
      * Constructeur
@@ -66,7 +65,7 @@ public class NotificationView extends JPanel implements INotificationObserver {
         notificationsPanel.setLayout(new BoxLayout(notificationsPanel, BoxLayout.Y_AXIS));
 
         // ScrollPane
-        scrollPane = new JScrollPane(notificationsPanel);
+        JScrollPane scrollPane = new JScrollPane(notificationsPanel);
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 

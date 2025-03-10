@@ -14,7 +14,7 @@ import main.java.com.ubo.tp.message.core.notification.NotificationController;
  */
 public class NotificationButton extends JButton implements INotificationObserver {
 
-    private NotificationController notificationController;
+    private final NotificationController notificationController;
     private int unreadCount;
 
     /**
@@ -39,7 +39,7 @@ public class NotificationButton extends JButton implements INotificationObserver
                     parent = parent.getParent();
                 }
 
-                if (parent instanceof JTabbedPane) {
+                if (parent != null) {
                     JTabbedPane tabbedPane = (JTabbedPane) parent;
                     tabbedPane.setSelectedIndex(2);
                 }

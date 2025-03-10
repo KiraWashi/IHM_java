@@ -15,10 +15,9 @@ import main.java.com.ubo.tp.message.core.session.ISessionObserver;
  */
 public class NotificationController implements IDatabaseObserver, ISessionObserver {
 
-    private IDatabase database;
-    private ISession session;
-    private List<Notification> notifications;
-    private Set<INotificationObserver> observers;
+    private final IDatabase database;
+    private final List<Notification> notifications;
+    private final Set<INotificationObserver> observers;
     private User connectedUser;
 
     private NotificationManager notificationManager;
@@ -28,13 +27,12 @@ public class NotificationController implements IDatabaseObserver, ISessionObserv
      */
     public NotificationController(IDatabase database, ISession session, String exchangeDirectory) {
         this.database = database;
-        this.session = session;
         this.notifications = new ArrayList<>();
         this.observers = new HashSet<>();
         this.notificationManager = new NotificationManager(exchangeDirectory);
 
         // S'enregistrer comme observateur
-        this.session.addObserver(this);
+        session.addObserver(this);
         this.database.addObserver(this);
     }
 
