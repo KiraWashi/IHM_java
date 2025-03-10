@@ -18,7 +18,7 @@ import main.java.com.ubo.tp.message.ihm.users.cell.UserCellView;
 /**
  * Composant d'affichage de la liste des utilisateurs
  */
-public class UserListView extends JPanel implements ISessionObserver {
+public class UserListView extends JPanel {
 
     /**
      * Contrôleur d'utilisateurs
@@ -54,9 +54,6 @@ public class UserListView extends JPanel implements ISessionObserver {
     public UserListView(UserController userController, ISession session) {
         this.userController = userController;
         this.session = session;
-
-        // S'abonner aux notifications de session
-        this.session.addObserver(this);
 
         // Initialisation de l'interface
         this.initUI();
@@ -203,13 +200,11 @@ public class UserListView extends JPanel implements ISessionObserver {
 
     // Implémentation des méthodes de l'interface ISessionObserver
 
-    @Override
-    public void notifyLogin(User connectedUser) {
+    public void login(User connectedUser) {
         refreshUsers();
     }
 
-    @Override
-    public void notifyLogout() {
+    public void logout() {
         refreshUsers();
     }
 }

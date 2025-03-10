@@ -6,6 +6,7 @@ import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.ihm.Actions;
 
 /**
  * Contrôleur unifié pour le menu de l'application.
@@ -42,19 +43,18 @@ public class MenuController implements ISessionObserver {
     /**
      * Interface pour déléguer les actions spécifiques à l'application
      */
-    private final MenuActionDelegate actionDelegate;
+    private final Actions action;
 
     /**
      * Constructeur.
      *
      * @param session La session de l'application
      * @param database La base de données
-     * @param actionDelegate Le délégué d'actions du menu
      */
-    public MenuController(ISession session, IDatabase database, MenuActionDelegate actionDelegate) {
+    public MenuController(ISession session, IDatabase database, Actions action) {
         this.session = session;
         this.database = database;
-        this.actionDelegate = actionDelegate;
+        this.action = action;
 
         // S'abonner aux événements de session
         this.session.addObserver(this);
@@ -74,14 +74,21 @@ public class MenuController implements ISessionObserver {
      * Méthode appelée quand l'utilisateur veut quitter l'application
      */
     public void exit() {
-        actionDelegate.exitApplication();
+        action.exitApplication();
     }
 
     /**
      * Méthode appelée quand l'utilisateur veut se déconnecter
      */
     public void logout() {
-        actionDelegate.logout();
+        action.logout();
+    }
+
+    /**
+     * Méthode appelée quand l'utilisateur veut changer de repertoire
+     */
+    public void changeDirectory(String directoryPath) {
+        action.changeDirectory(directoryPath);
     }
 
     /**
@@ -177,25 +184,5 @@ public class MenuController implements ISessionObserver {
      */
     public String getAppName() {
         return APP_NAME;
-    }
-
-    /**
-     * Interface pour déléguer les actions spécifiques à l'application
-     */
-    public interface MenuActionDelegate {
-        /**
-         * Quitte l'application
-         */
-        void exitApplication();
-
-        /**
-         * Change le répertoire d'échange
-         */
-        void changeDirectory(String directoryPath);
-
-        /**
-         * Déconnecte l'utilisateur
-         */
-        void logout();
     }
 }

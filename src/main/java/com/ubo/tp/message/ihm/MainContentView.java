@@ -21,27 +21,12 @@ import main.java.com.ubo.tp.message.ihm.users.UserListView;
 /**
  * Vue principale de l'application après connexion
  */
-public class MainContentView extends JPanel implements ISessionObserver {
+public class MainContentView extends JPanel {
 
     /**
      * Session active
      */
     private final ISession session;
-
-    /**
-     * Contrôleur de composition de message
-     */
-    private final MessageComposeController messageComposeController;
-
-    /**
-     * Contrôleur de liste des messages
-     */
-    private final MessageListController messageListController;
-
-    /**
-     * Contrôleur des utilisateurs
-     */
-    private final UserController userController;
 
     /**
      * Panneau avec les onglets
@@ -58,20 +43,25 @@ public class MainContentView extends JPanel implements ISessionObserver {
      */
     private final NotificationController notificationController;
 
+    private final MessageListView messageListView;
+
+    private final MessageComposeView messageComposeView;
+
+    private final UserListView userListView;
+
+    private final NotificationView notificationView;
+
 
     /**
      * Constructeur
      */
-    public MainContentView(ISession session, NotificationController notificationController, MessageComposeController messageComposeController,
-                                MessageListController messageListController, UserController userController) {
+    public MainContentView(ISession session, NotificationController notificationController, MessageListView messageListView, MessageComposeView messageComposeView, UserListView userListView, NotificationView notificationView) {
         this.session = session;
         this.notificationController = notificationController;
-        this.messageComposeController = messageComposeController;
-        this.messageListController = messageListController;
-        this.userController = userController;
-
-        // S'abonner aux notifications de session
-        this.session.addObserver(this);
+        this.messageListView = messageListView;
+        this.messageComposeView = messageComposeView;
+        this.userListView = userListView;
+        this.notificationView = notificationView;
 
         // Initialisation de l'interface
         this.initUI();
@@ -87,10 +77,7 @@ public class MainContentView extends JPanel implements ISessionObserver {
         this.setLayout(new BorderLayout());
 
         // Initialisation des vues
-        MessageComposeView messageComposeView = new MessageComposeView(messageComposeController, session);
-        MessageListView messageListView = new MessageListView(messageListController, session);
-        UserListView userListView = new UserListView(userController, session);
-        NotificationView notificationView = new NotificationView(notificationController);
+
 
         // Bouton de notification
         NotificationButton notificationButton = new NotificationButton(notificationController);
@@ -138,7 +125,7 @@ public class MainContentView extends JPanel implements ISessionObserver {
     /**
      * Met à jour l'état de l'interface en fonction de l'état de connexion
      */
-    private void updateUIState() {
+    public void updateUIState() {
         boolean isConnected = session.getConnectedUser() != null;
 
         this.removeAll();
@@ -155,15 +142,4 @@ public class MainContentView extends JPanel implements ISessionObserver {
         this.repaint();
     }
 
-    // Implémentation des méthodes de l'interface ISessionObserver
-
-    @Override
-    public void notifyLogin(User connectedUser) {
-        updateUIState();
-    }
-
-    @Override
-    public void notifyLogout() {
-        updateUIState();
-    }
 }

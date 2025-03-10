@@ -24,7 +24,7 @@ import main.java.com.ubo.tp.message.ihm.messages.list.cell.MessageCellView;
 /**
  * Composant d'affichage de la liste des messages
  */
-public class MessageListView extends JPanel implements IDatabaseObserver, ISessionObserver {
+public class MessageListView extends JPanel {
 
     /**
      * Chemin vers les icônes
@@ -71,9 +71,6 @@ public class MessageListView extends JPanel implements IDatabaseObserver, ISessi
         this.messageListController = messageListController;
         this.session = session;
         this.dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-
-        // S'abonner aux notifications de session
-        this.session.addObserver(this);
 
         // Initialisation de l'interface
         this.initUI();
@@ -225,47 +222,4 @@ public class MessageListView extends JPanel implements IDatabaseObserver, ISessi
         });
     }
 
-    // Implémentation des méthodes de l'interface IDatabaseObserver
-
-    @Override
-    public void notifyMessageAdded(Message addedMessage) {
-        refreshMessages();
-    }
-
-    @Override
-    public void notifyMessageDeleted(Message deletedMessage) {
-        refreshMessages();
-    }
-
-    @Override
-    public void notifyMessageModified(Message modifiedMessage) {
-        refreshMessages();
-    }
-
-    @Override
-    public void notifyUserAdded(User addedUser) {
-        // Non utilisé pour ce composant
-    }
-
-    @Override
-    public void notifyUserDeleted(User deletedUser) {
-        // Non utilisé pour ce composant
-    }
-
-    @Override
-    public void notifyUserModified(User modifiedUser) {
-        // Non utilisé pour ce composant
-    }
-
-    // Implémentation des méthodes de l'interface ISessionObserver
-
-    @Override
-    public void notifyLogin(User connectedUser) {
-        refreshMessages();
-    }
-
-    @Override
-    public void notifyLogout() {
-        refreshMessages();
-    }
 }

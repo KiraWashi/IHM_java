@@ -8,21 +8,26 @@ import main.java.com.ubo.tp.message.common.Constants;
 import main.java.com.ubo.tp.message.common.PropertiesManager;
 import main.java.com.ubo.tp.message.core.EntityManager;
 import main.java.com.ubo.tp.message.core.database.IDatabase;
+import main.java.com.ubo.tp.message.core.database.IDatabaseObserver;
 import main.java.com.ubo.tp.message.core.directory.IWatchableDirectory;
 import main.java.com.ubo.tp.message.core.directory.WatchableDirectory;
 import main.java.com.ubo.tp.message.core.notification.NotificationController;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.core.session.Session;
+import main.java.com.ubo.tp.message.datamodel.Message;
 import main.java.com.ubo.tp.message.datamodel.User;
 import main.java.com.ubo.tp.message.ihm.login.LoginController;
 import main.java.com.ubo.tp.message.ihm.login.LoginView;
 import main.java.com.ubo.tp.message.ihm.menu.MenuController;
-import main.java.com.ubo.tp.message.ihm.menu.MenuDelegate;
 import main.java.com.ubo.tp.message.ihm.menu.MenuView;
 import main.java.com.ubo.tp.message.ihm.messages.compose.MessageComposeController;
+import main.java.com.ubo.tp.message.ihm.messages.compose.MessageComposeView;
 import main.java.com.ubo.tp.message.ihm.messages.list.MessageListController;
+import main.java.com.ubo.tp.message.ihm.messages.list.MessageListView;
+import main.java.com.ubo.tp.message.ihm.notifications.NotificationView;
 import main.java.com.ubo.tp.message.ihm.users.UserController;
+import main.java.com.ubo.tp.message.ihm.users.UserListView;
 
 import javax.swing.UIManager;
 
@@ -32,7 +37,7 @@ import javax.swing.UIManager;
  *
  * @author S.Lucas
  */
-public class MessageApp implements ISessionObserver {
+public class MessageApp implements ISessionObserver, Actions, IDatabaseObserver {
 	/**
 	 * Base de données.
 	 */
@@ -57,11 +62,6 @@ public class MessageApp implements ISessionObserver {
 	 * Contrôleur du menu.
 	 */
 	protected MenuController mMenuController;
-
-	/**
-	 * Délégué pour les actions du menu
-	 */
-	protected MenuDelegate mMenuDelegate;
 
 	/**
 	 * Contrôleur de login.
@@ -113,6 +113,15 @@ public class MessageApp implements ISessionObserver {
 	 */
 	protected NotificationController mNotificationController;
 
+	protected MessageComposeView messageComposeView;
+
+	protected MessageListView messageListView;
+
+	protected UserListView userListView;
+
+	protected NotificationView notificationView;
+
+
 	/**
 	 * Constructeur.
 	 *
@@ -122,6 +131,7 @@ public class MessageApp implements ISessionObserver {
 		this.mEntityManager = entityManager;
 		this.mSession = new Session();
 		mSession.addObserver(this);
+		database.addObserver(this);
 	}
 
 	/**
@@ -156,8 +166,6 @@ public class MessageApp implements ISessionObserver {
 	}
 
 	protected void initController(){
-		// Création du délégué pour les actions du menu
-		this.mMenuDelegate = new MenuDelegate(this);
 		// Initialisation des contrôleurs qui nécessitent la vue principale
 		this.mLoginController = new LoginController(this.mDatabase, this.mEntityManager, this.mSession);
 
@@ -169,18 +177,31 @@ public class MessageApp implements ISessionObserver {
 
 		this.mMessageListController = new MessageListController(this.mDatabase, this.mSession);
 		// Création du contrôleur du menu
-		this.mMenuController = new MenuController(this.mSession, this.mDatabase, this.mMenuDelegate);
+		this.mMenuController = new MenuController(this.mSession, this.mDatabase, this);
 	}
 
 	protected void initView(){
 		// Création de la vue principale
-		this.mMainView = new MessageAppMainView(mSession);
+		this.mMainView = new MessageAppMainView();
 		// Création de la vue de login
 		this.mLoginView = new LoginView(this.mLoginController);
+
+		this.messageListView = new MessageListView(this.mMessageListController, this.mSession);
+
+		this.messageComposeView = new MessageComposeView(this.mMessageComposeController, this.mSession);
+
+		this.userListView = new UserListView(this.mUserController, this.mSession);
+
+		this.notificationView = new NotificationView(this.mNotificationController);
 		// Création de la vue de contenu principal
-		this.mMainContentView = new MainContentView(this.mSession, this.mNotificationController, this.mMessageComposeController, this.mMessageListController, this.mUserController);
+		this.mMainContentView = new MainContentView(this.mSession, this.mNotificationController, this.messageListView, this.messageComposeView, this.userListView, this.notificationView);
 
 		this.mMenuView = new MenuView(this.mMenuController, this.mSession);
+
+		this.messageComposeView = new MessageComposeView(this.mMessageComposeController, this.mSession);
+		this.messageListView = new MessageListView(this.mMessageListController, this.mSession);
+		this.userListView = new UserListView(this.mUserController, this.mSession);
+		this.notificationView = new NotificationView(this.mNotificationController);
 	}
 
 	/**
@@ -244,18 +265,9 @@ public class MessageApp implements ISessionObserver {
 		}
 	}
 
-	/**
-	 * Ferme proprement l'application
-	 */
-	public void close() {
-		// Fermer la vue
-		if (mMainView != null) {
-			if(mMainView.closeApp() == 0){
-				this.exit();
-			}
-		}
-	}
 
+
+	@Override
 	public void logout(){
 		if (this.getSession().getConnectedUser() != null) {
 			this.getSession().disconnect();
@@ -290,6 +302,16 @@ public class MessageApp implements ISessionObserver {
 
 		mWatchableDirectory.initWatching();
 		mWatchableDirectory.addObserver(mEntityManager);
+	}
+
+	@Override
+	public void exitApplication() {
+		// Fermer la vue
+		if (mMainView != null) {
+			if(mMainView.closeApp() == 0){
+				this.exit();
+			}
+		}
 	}
 
 	/**
@@ -363,6 +385,9 @@ public class MessageApp implements ISessionObserver {
 	@Override
 	public void notifyLogin(User connectedUser) {
 		this.showMainContent();
+		this.mMainContentView.updateUIState();
+		this.mMainView.login(connectedUser);
+		this.userListView.login(connectedUser);
 	}
 
 	@Override
@@ -372,5 +397,38 @@ public class MessageApp implements ISessionObserver {
 		contentPane.add(new LoginView(this.mLoginController), BorderLayout.CENTER);
 		contentPane.revalidate();
 		contentPane.repaint();
+		this.mMainContentView.updateUIState();
+		this.mMainView.logout();
+		this.userListView.logout();
+	}
+
+	@Override
+	public void notifyMessageAdded(Message addedMessage) {
+		this.messageListView.refreshMessages();
+	}
+
+	@Override
+	public void notifyMessageDeleted(Message deletedMessage) {
+		this.messageListView.refreshMessages();
+	}
+
+	@Override
+	public void notifyMessageModified(Message modifiedMessage) {
+		this.messageListView.refreshMessages();
+	}
+
+	@Override
+	public void notifyUserAdded(User addedUser) {
+		this.messageListView.refreshMessages();
+	}
+
+	@Override
+	public void notifyUserDeleted(User deletedUser) {
+		this.messageListView.refreshMessages();
+	}
+
+	@Override
+	public void notifyUserModified(User modifiedUser) {
+		this.messageListView.refreshMessages();
 	}
 }

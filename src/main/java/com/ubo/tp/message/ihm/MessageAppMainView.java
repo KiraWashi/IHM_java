@@ -8,14 +8,13 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 
 import main.java.com.ubo.tp.message.core.session.ISession;
-import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.datamodel.User;
 
 
 /**
  * Classe de la vue principale de l'application.
  */
-public class MessageAppMainView extends JFrame implements ISessionObserver {
+public class MessageAppMainView extends JFrame{
 
     /**
      * Chemin vers les icônes
@@ -25,10 +24,9 @@ public class MessageAppMainView extends JFrame implements ISessionObserver {
     /**
      * Constructeur.
      */
-    public MessageAppMainView(ISession session) {
+    public MessageAppMainView() {
         super("MessageApp");
         // S'abonner aux événements de session
-        session.addObserver(this);
 
     }
 
@@ -104,15 +102,12 @@ public class MessageAppMainView extends JFrame implements ISessionObserver {
     }
 
     // Implémentation des méthodes de l'interface ISessionObserver
-
-    @Override
-    public void notifyLogin(User connectedUser) {
+    public void login(User connectedUser) {
         // Mise à jour du titre de la fenêtre avec le nom de l'utilisateur
         this.setTitle("MessageApp - " + connectedUser.getName() + " (@" + connectedUser.getUserTag() + ")");
     }
 
-    @Override
-    public void notifyLogout() {
+    public void logout() {
         // Réinitialisation du titre de la fenêtre
         this.setTitle("MessageApp");
     }

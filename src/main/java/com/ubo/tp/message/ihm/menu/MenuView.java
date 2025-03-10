@@ -11,7 +11,6 @@ import javax.swing.*;
 
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
-import main.java.com.ubo.tp.message.core.session.Session;
 import main.java.com.ubo.tp.message.datamodel.User;
 
 /**
@@ -96,7 +95,7 @@ public class MenuView extends JMenuBar implements ISessionObserver {
         directoryItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                showDirectoryChooser();
             }
         });
 
@@ -199,6 +198,44 @@ public class MenuView extends JMenuBar implements ISessionObserver {
         // Rafraîchir la barre de menu
         this.revalidate();
         this.repaint();
+    }
+
+    /**
+     * Affiche un sélecteur de répertoire
+     *
+     * @return Le fichier sélectionné ou null si aucun répertoire n'a été choisi
+     */
+    public void showDirectoryChooser() {
+        // Création du sélecteur de fichier
+        JFileChooser fileChooser = new JFileChooser();
+
+        // Configurer le JFileChooser pour qu'il s'ouvre à la racine du projet
+        File projectRoot = new File(System.getProperty("user.dir"));
+        fileChooser.setCurrentDirectory(projectRoot);
+
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        fileChooser.setDialogTitle("Sélectionnez un répertoire d'échange");
+
+        // Affichage du sélecteur de fichier
+        int returnValue = fileChooser.showOpenDialog(parentComponent);
+
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+
+            // Vérifier si le répertoire est valide
+            if (menuController.isValidExchangeDirectory(selectedFile)) {
+                menuController.changeDirectory(selectedFile.getAbsolutePath());
+            } else {
+                // Affichage d'un message d'erreur
+                JOptionPane.showMessageDialog(
+                        parentComponent,
+                        "Le répertoire sélectionné n'est pas valide.\n" +
+                                "Veuillez sélectionner un répertoire accessible en lecture et écriture.",
+                        "Erreur",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
     }
 
 
