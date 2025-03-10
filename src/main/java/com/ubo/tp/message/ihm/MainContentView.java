@@ -158,7 +158,6 @@ public class MainContentView extends JPanel implements ISessionObserver {
 
         // Abonnement aux événements de la base de données
         database.addObserver(messageListView);
-        database.addObserver(userListView);
 
         // Panneau principal avec onglets
         tabbedPane = new JTabbedPane();

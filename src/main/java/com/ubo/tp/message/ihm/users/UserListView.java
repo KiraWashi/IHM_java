@@ -10,27 +10,25 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import main.java.com.ubo.tp.message.core.database.IDatabaseObserver;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
-import main.java.com.ubo.tp.message.datamodel.Message;
 import main.java.com.ubo.tp.message.datamodel.User;
 import main.java.com.ubo.tp.message.ihm.users.cell.UserCellView;
 
 /**
  * Composant d'affichage de la liste des utilisateurs
  */
-public class UserListView extends JPanel implements IDatabaseObserver, ISessionObserver {
+public class UserListView extends JPanel implements ISessionObserver {
 
     /**
      * Contrôleur d'utilisateurs
      */
-    private UserController userController;
+    private final UserController userController;
 
     /**
      * Session active
      */
-    private ISession session;
+    private final ISession session;
 
     /**
      * Panneau contenant la liste des utilisateurs
@@ -41,11 +39,6 @@ public class UserListView extends JPanel implements IDatabaseObserver, ISessionO
      * Champ de recherche
      */
     private JTextField searchField;
-
-    /**
-     * Bouton de recherche
-     */
-    private JButton searchButton;
 
     /**
      * Scroll pane pour la liste des utilisateurs
@@ -105,7 +98,7 @@ public class UserListView extends JPanel implements IDatabaseObserver, ISessionO
         searchPanel.add(searchField, BorderLayout.CENTER);
 
         // Bouton de recherche
-        searchButton = new JButton("Rechercher");
+        JButton searchButton = new JButton("Rechercher");
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -149,7 +142,7 @@ public class UserListView extends JPanel implements IDatabaseObserver, ISessionO
         if (searchField != null && !searchField.getText().trim().isEmpty()) {
             searchUsers();
         } else {
-            List<User> users = userController.getAllUsers();
+            List<User> users = userController.getAllUsers(null);
             displayUsers(users);
         }
     }
@@ -206,38 +199,6 @@ public class UserListView extends JPanel implements IDatabaseObserver, ISessionO
                 scrollPane.getVerticalScrollBar().setValue(verticalScrollValue);
             }
         });
-    }
-
-    // Implémentation des méthodes de l'interface IDatabaseObserver
-
-    @Override
-    public void notifyMessageAdded(Message addedMessage) {
-        // Non utilisé pour ce composant
-    }
-
-    @Override
-    public void notifyMessageDeleted(Message deletedMessage) {
-        // Non utilisé pour ce composant
-    }
-
-    @Override
-    public void notifyMessageModified(Message modifiedMessage) {
-        // Non utilisé pour ce composant
-    }
-
-    @Override
-    public void notifyUserAdded(User addedUser) {
-        refreshUsers();
-    }
-
-    @Override
-    public void notifyUserDeleted(User deletedUser) {
-        refreshUsers();
-    }
-
-    @Override
-    public void notifyUserModified(User modifiedUser) {
-        refreshUsers();
     }
 
     // Implémentation des méthodes de l'interface ISessionObserver

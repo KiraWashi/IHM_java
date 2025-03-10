@@ -20,17 +20,17 @@ public class UserController {
     /**
      * Base de données de l'application
      */
-    private IDatabase database;
+    private final IDatabase database;
 
     /**
      * Session active
      */
-    private ISession session;
+    private final ISession session;
 
     /**
      * Gestionnaire d'entités
      */
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
     /**
      * Constructeur
@@ -50,12 +50,18 @@ public class UserController {
      *
      * @return Liste des utilisateurs
      */
-    public List<User> getAllUsers() {
-        Set<User> userSet = database.getUsers();
-        List<User> userList = new ArrayList<>(userSet);
+    public List<User> getAllUsers(Set<User> searchResults) {
+        List<User> userList;
+        if(searchResults != null){
+            userList = new ArrayList<>(searchResults);
+        } else {
+            Set<User> userSet = database.getUsers();
+            userList = new ArrayList<>(userSet);
+        }
+
 
         // Tri par nom
-        Collections.sort(userList, new Comparator<User>() {
+        userList.sort(new Comparator<User>() {
             @Override
             public int compare(User u1, User u2) {
                 return u1.getName().compareToIgnoreCase(u2.getName());
@@ -73,7 +79,7 @@ public class UserController {
      */
     public List<User> searchUsers(String searchQuery) {
         if (searchQuery == null || searchQuery.trim().isEmpty()) {
-            return getAllUsers();
+            return getAllUsers(null);
         }
 
         searchQuery = searchQuery.trim().toLowerCase();
@@ -88,75 +94,7 @@ public class UserController {
             }
         }
 
-        // Conversion en liste et tri
-        List<User> userList = new ArrayList<>(searchResults);
-        Collections.sort(userList, new Comparator<User>() {
-            @Override
-            public int compare(User u1, User u2) {
-                return u1.getName().compareToIgnoreCase(u2.getName());
-            }
-        });
-
-        return userList;
-    }
-
-    /**
-     * Récupère les followers d'un utilisateur
-     *
-     * @param user Utilisateur
-     * @return Liste des followers
-     */
-    public List<User> getFollowers(User user) {
-        if (user == null) {
-            return new ArrayList<>();
-        }
-
-        Set<User> followers = database.getFollowers(user);
-        List<User> followerList = new ArrayList<>(followers);
-
-        // Tri par nom
-        Collections.sort(followerList, new Comparator<User>() {
-            @Override
-            public int compare(User u1, User u2) {
-                return u1.getName().compareToIgnoreCase(u2.getName());
-            }
-        });
-
-        return followerList;
-    }
-
-    /**
-     * Récupère les utilisateurs suivis par un utilisateur
-     *
-     * @param user Utilisateur
-     * @return Liste des utilisateurs suivis
-     */
-    public List<User> getFollowing(User user) {
-        if (user == null) {
-            return new ArrayList<>();
-        }
-
-        Set<String> followedTags = user.getFollows();
-        Set<User> followingSet = new HashSet<>();
-
-        // Récupération des utilisateurs correspondant aux tags suivis
-        for (User otherUser : database.getUsers()) {
-            if (followedTags.contains(otherUser.getUserTag())) {
-                followingSet.add(otherUser);
-            }
-        }
-
-        List<User> followingList = new ArrayList<>(followingSet);
-
-        // Tri par nom
-        Collections.sort(followingList, new Comparator<User>() {
-            @Override
-            public int compare(User u1, User u2) {
-                return u1.getName().compareToIgnoreCase(u2.getName());
-            }
-        });
-
-        return followingList;
+        return this.getAllUsers(searchResults);
     }
 
     /**

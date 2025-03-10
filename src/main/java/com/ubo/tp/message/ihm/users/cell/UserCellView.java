@@ -25,17 +25,17 @@ public class UserCellView extends JPanel implements ISessionObserver {
     /**
      * Utilisateur à afficher
      */
-    private User user;
+    private final User user;
 
     /**
      * Contrôleur d'utilisateurs
      */
-    private UserController userController;
+    private final UserController userController;
 
     /**
      * Session active
      */
-    private ISession session;
+    private final ISession session;
 
     /**
      * Bouton pour suivre/ne plus suivre
@@ -46,11 +46,6 @@ public class UserCellView extends JPanel implements ISessionObserver {
      * Label pour le nombre de followers
      */
     private JLabel followersLabel;
-
-    /**
-     * Label pour le nombre d'utilisateurs suivis
-     */
-    private JLabel followingLabel;
 
     /**
      * Constructeur
@@ -149,7 +144,10 @@ public class UserCellView extends JPanel implements ISessionObserver {
         followersLabel = new JLabel(followersCount + " followers");
 
         int followingCount = userController.getFollowingCount(user);
-        followingLabel = new JLabel(followingCount + " abonnements");
+        /**
+         * Label pour le nombre d'utilisateurs suivis
+         */
+        JLabel followingLabel = new JLabel(followingCount + " abonnements");
 
         statsPanel.add(followersLabel);
         statsPanel.add(followingLabel);
