@@ -1,7 +1,6 @@
 package main.java.com.ubo.tp.message.ihm.messages.list;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -20,12 +19,12 @@ public class MessageListController {
     /**
      * Base de données de l'application
      */
-    private IDatabase database;
+    private final IDatabase database;
 
     /**
      * Session active
      */
-    private ISession session;
+    private final ISession session;
 
     /**
      * Constructeur
@@ -36,26 +35,6 @@ public class MessageListController {
     public MessageListController(IDatabase database, ISession session) {
         this.database = database;
         this.session = session;
-    }
-
-    /**
-     * Récupère tous les messages
-     *
-     * @return Liste des messages
-     */
-    public List<Message> getAllMessages() {
-        Set<Message> messageSet = database.getMessages();
-        List<Message> messageList = new ArrayList<>(messageSet);
-
-        // Tri par date (plus récent en premier)
-        Collections.sort(messageList, new Comparator<Message>() {
-            @Override
-            public int compare(Message m1, Message m2) {
-                return Long.compare(m1.getEmissionDate(), m2.getEmissionDate());
-            }
-        });
-
-        return messageList;
     }
 
     /**
@@ -89,7 +68,7 @@ public class MessageListController {
 
         // Conversion en liste et tri
         List<Message> messageList = new ArrayList<>(relevantMessages);
-        Collections.sort(messageList, new Comparator<Message>() {
+        messageList.sort(new Comparator<Message>() {
             @Override
             public int compare(Message m1, Message m2) {
                 return Long.compare(m1.getEmissionDate(), m2.getEmissionDate());
@@ -153,7 +132,7 @@ public class MessageListController {
 
         // Conversion en liste et tri
         List<Message> messageList = new ArrayList<>(searchResults);
-        Collections.sort(messageList, new Comparator<Message>() {
+        messageList.sort(new Comparator<Message>() {
             @Override
             public int compare(Message m1, Message m2) {
                 // Tri par date (plus ancien en premier comme demandé)

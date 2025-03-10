@@ -14,17 +14,17 @@ public class MessageComposeController {
     /**
      * Base de données de l'application
      */
-    private IDatabase database;
+    private final IDatabase database;
 
     /**
      * Gestionnaire d'entités
      */
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
     /**
      * Session active
      */
-    private ISession session;
+    private final ISession session;
 
     /**
      * Limite de caractères pour un message

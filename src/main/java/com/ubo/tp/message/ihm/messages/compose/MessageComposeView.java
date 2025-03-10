@@ -27,12 +27,7 @@ public class MessageComposeView extends JPanel implements ISessionObserver {
     /**
      * Contrôleur de composition de message
      */
-    private MessageComposeController composeController;
-
-    /**
-     * Session active
-     */
-    private ISession session;
+    private final MessageComposeController composeController;
 
     /**
      * Zone de texte pour la saisie du message
@@ -52,7 +47,7 @@ public class MessageComposeView extends JPanel implements ISessionObserver {
     /**
      * Limite de caractères pour un message
      */
-    private int characterLimit;
+    private final int characterLimit;
 
     /**
      * Constructeur
@@ -62,11 +57,12 @@ public class MessageComposeView extends JPanel implements ISessionObserver {
      */
     public MessageComposeView(MessageComposeController composeController, ISession session) {
         this.composeController = composeController;
-        this.session = session;
+
+         //Session active
         this.characterLimit = composeController.getMessageCharacterLimit();
 
         // S'abonner aux notifications de session
-        this.session.addObserver(this);
+        session.addObserver(this);
 
         // Initialisation de l'interface
         this.initUI();

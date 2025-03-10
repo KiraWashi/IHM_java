@@ -6,7 +6,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -20,7 +19,6 @@ import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.datamodel.Message;
 import main.java.com.ubo.tp.message.datamodel.User;
-import main.java.com.ubo.tp.message.ihm.messages.list.MessageListController;
 import main.java.com.ubo.tp.message.ihm.messages.list.cell.MessageCellView;
 
 /**
@@ -36,12 +34,12 @@ public class MessageListView extends JPanel implements IDatabaseObserver, ISessi
     /**
      * Contrôleur de liste de messages
      */
-    private MessageListController messageListController;
+    private final MessageListController messageListController;
 
     /**
      * Session active
      */
-    private ISession session;
+    private final ISession session;
 
     /**
      * Panneau contenant la liste des messages
@@ -54,11 +52,6 @@ public class MessageListView extends JPanel implements IDatabaseObserver, ISessi
     private JTextField searchField;
 
     /**
-     * Bouton de recherche
-     */
-    private JButton searchButton;
-
-    /**
      * Scroll pane pour la liste des messages
      */
     private JScrollPane scrollPane;
@@ -66,7 +59,7 @@ public class MessageListView extends JPanel implements IDatabaseObserver, ISessi
     /**
      * Format de date pour l'affichage
      */
-    private SimpleDateFormat dateFormat;
+    private final SimpleDateFormat dateFormat;
 
     /**
      * Constructeur
@@ -122,7 +115,10 @@ public class MessageListView extends JPanel implements IDatabaseObserver, ISessi
         searchPanel.add(searchField, BorderLayout.CENTER);
 
         // Bouton de recherche
-        searchButton = new JButton("Rechercher");
+        /**
+         * Bouton de recherche
+         */
+        JButton searchButton = new JButton("Rechercher");
         try {
             searchButton.setIcon(new ImageIcon(ImageIO.read(new File(ICON_PATH + "searchIcon_20.png"))));
         } catch (IOException e) {
