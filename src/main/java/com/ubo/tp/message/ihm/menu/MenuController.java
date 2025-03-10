@@ -1,36 +1,33 @@
 package main.java.com.ubo.tp.message.ihm.menu;
 
-import main.java.com.ubo.tp.message.ihm.MessageAppMainView;
-import main.java.com.ubo.tp.message.datamodel.User;
+import java.io.File;
+
+import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
-import main.java.com.ubo.tp.message.ihm.menu.about.AboutController;
-import main.java.com.ubo.tp.message.ihm.menu.about.AboutView;
-import main.java.com.ubo.tp.message.ihm.menu.directoryChoose.DirectoryChooserView;
-import main.java.com.ubo.tp.message.ihm.menu.directoryChoose.DirectoryController;
-import main.java.com.ubo.tp.message.ihm.menu.profile.ProfileController;
-import main.java.com.ubo.tp.message.ihm.menu.profile.ProfileView;
+import main.java.com.ubo.tp.message.datamodel.User;
 
 /**
- * Classe qui gère la logique du menu de l'application.
- * Responsable de la gestion des événements et des interactions entre la vue et le modèle.
+ * Contrôleur unifié pour le menu de l'application.
+ * Combine les fonctionnalités de MenuController, ProfileController,
+ * DirectoryController et AboutController.
  */
 public class MenuController implements ISessionObserver {
 
     /**
-     * Référence vers la vue principale
+     * Version de l'application
      */
-    private MessageAppMainView mainView;
+    private static final String APP_VERSION = "1.0";
 
     /**
-     * Vue du menu
+     * Nom de l'application
      */
-    private MessageAppMenuView menuView;
+    private static final String APP_NAME = "MessageApp";
 
     /**
      * Session de l'application
      */
-    private ISession session;
+    private final ISession session;
 
     /**
      * Utilisateur actuellement connecté
@@ -38,64 +35,30 @@ public class MenuController implements ISessionObserver {
     private User connectedUser;
 
     /**
-     * Contrôleur pour la gestion du profil
+     * Base de données
      */
-    private ProfileController profileController;
+    private final IDatabase database;
 
     /**
-     * Contrôleur pour la gestion du répertoire d'échange
+     * Interface pour déléguer les actions spécifiques à l'application
      */
-    private DirectoryController directoryController;
-
-    /**
-     * Contrôleur pour la gestion des informations "À propos"
-     */
-    private AboutController aboutController;
-
-    /**
-     * Composant pour l'affichage du profil
-     */
-    private ProfileView profileView;
-
-    /**
-     * Composant pour le choix du répertoire d'échange
-     */
-    private DirectoryChooserView directoryChooserView;
-
-    /**
-     * Composant pour l'affichage de la boîte "À propos"
-     */
-    private AboutView aboutView;
+    private final MenuActionDelegate actionDelegate;
 
     /**
      * Constructeur.
      *
-     * @param mainView La vue principale de l'application
      * @param session La session de l'application
-     * @param profileController Le contrôleur de profil
-     * @param directoryController Le contrôleur de répertoire
-     * @param aboutController Le contrôleur "À propos"
+     * @param database La base de données
+     * @param actionDelegate Le délégué d'actions du menu
      */
-    public MenuController(MessageAppMainView mainView, ISession session,
-                          ProfileController profileController,
-                          DirectoryController directoryController,
-                          AboutController aboutController) {
-        this.mainView = mainView;
+    public MenuController(ISession session, IDatabase database, MenuActionDelegate actionDelegate) {
         this.session = session;
-        this.profileController = profileController;
-        this.directoryController = directoryController;
-        this.aboutController = aboutController;
+        this.database = database;
+        this.actionDelegate = actionDelegate;
 
         // S'abonner aux événements de session
         this.session.addObserver(this);
 
-        // Initialisation des vues
-        this.profileView = new ProfileView(mainView, profileController);
-        this.directoryChooserView = new DirectoryChooserView(mainView, directoryController);
-        this.aboutView = new AboutView(mainView, aboutController);
-
-        // Création de la vue du menu
-        this.menuView = new MessageAppMenuView(this);
     }
 
     /**
@@ -104,55 +67,21 @@ public class MenuController implements ISessionObserver {
     public void init() {
         // Vérifier l'état initial de connexion
         this.connectedUser = session.getConnectedUser();
-        if (menuView != null) {
-            menuView.updateMenuState(this.connectedUser != null);
-        }
     }
 
-    /**
-     * Retourne la vue du menu
-     *
-     * @return La vue du menu
-     */
-    public MessageAppMenuView getMenuView() {
-        return menuView;
-    }
 
     /**
      * Méthode appelée quand l'utilisateur veut quitter l'application
      */
     public void exit() {
-        mainView.closeApp();
-    }
-
-    /**
-     * Méthode appelée quand l'utilisateur veut changer le répertoire d'échange
-     */
-    public void chooseDirectory() {
-        directoryChooserView.showDirectoryChooser();
-    }
-
-    /**
-     * Méthode appelée quand l'utilisateur veut voir son profil
-     */
-    public void showProfile() {
-        if (connectedUser != null) {
-            profileView.showUserProfile(connectedUser);
-        }
+        actionDelegate.exitApplication();
     }
 
     /**
      * Méthode appelée quand l'utilisateur veut se déconnecter
      */
     public void logout() {
-        mainView.logout();
-    }
-
-    /**
-     * Méthode appelée quand l'utilisateur veut voir la boîte "À propos"
-     */
-    public void showAbout() {
-        aboutView.showAboutDialog();
+        actionDelegate.logout();
     }
 
     /**
@@ -178,16 +107,95 @@ public class MenuController implements ISessionObserver {
     @Override
     public void notifyLogin(User connectedUser) {
         this.connectedUser = connectedUser;
-        if (menuView != null) {
-            menuView.updateMenuState(true);
-        }
     }
 
     @Override
     public void notifyLogout() {
         this.connectedUser = null;
-        if (menuView != null) {
-            menuView.updateMenuState(false);
-        }
+    }
+
+    // Fonctionnalités liées au profil
+
+    /**
+     * Récupère le nombre de followers pour un utilisateur
+     *
+     * @param user Utilisateur
+     * @return Nombre de followers
+     */
+    public int getFollowersCount(User user) {
+        return database.getFollowersCount(user);
+    }
+
+    /**
+     * Récupère le nombre de messages envoyés par un utilisateur
+     *
+     * @param user Utilisateur
+     * @return Nombre de messages
+     */
+    public int getUserMessagesCount(User user) {
+        return database.getUserMessages(user).size();
+    }
+
+    /**
+     * Récupère le nombre d'utilisateurs suivis par un utilisateur
+     *
+     * @param user Utilisateur
+     * @return Nombre d'utilisateurs suivis
+     */
+    public int getFollowedCount(User user) {
+        return user.getFollows().size();
+    }
+
+    // Fonctionnalités liées au répertoire
+
+    /**
+     * Vérifie si le répertoire est valide pour servir de répertoire d'échange
+     *
+     * @param directory Répertoire à tester
+     * @return true si le répertoire est valide, false sinon
+     */
+    public boolean isValidExchangeDirectory(File directory) {
+        return directory != null && directory.exists() && directory.isDirectory() &&
+                directory.canRead() && directory.canWrite();
+    }
+
+    // Fonctionnalités liées à "À propos"
+
+    /**
+     * Récupère la version de l'application
+     *
+     * @return Version de l'application
+     */
+    public String getAppVersion() {
+        return APP_VERSION;
+    }
+
+    /**
+     * Récupère le nom de l'application
+     *
+     * @return Nom de l'application
+     */
+    public String getAppName() {
+        return APP_NAME;
+    }
+
+    /**
+     * Interface pour déléguer les actions spécifiques à l'application
+     */
+    public interface MenuActionDelegate {
+        /**
+         * Quitte l'application
+         */
+        void exitApplication();
+
+        /**
+         * Change le répertoire d'échange
+         */
+        void changeDirectory(String directoryPath);
+
+        /**
+         * Déconnecte l'utilisateur
+         */
+        void logout();
     }
 }
