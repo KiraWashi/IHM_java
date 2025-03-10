@@ -17,7 +17,7 @@ public class LoginView extends JPanel {
     /**
      * Référence vers le contrôleur de login
      */
-    private LoginController loginController;
+    private final LoginController loginController;
 
     /**
      * Panneau de contenu principal

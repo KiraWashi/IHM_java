@@ -5,39 +5,16 @@ import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.datamodel.User;
-import main.java.com.ubo.tp.message.ihm.MessageAppMainView;
 
-import javax.swing.*;
-import java.awt.*;
 import java.util.HashSet;
 import java.util.UUID;
 
-import main.java.com.ubo.tp.message.core.EntityManager;
-import main.java.com.ubo.tp.message.core.database.IDatabase;
-import main.java.com.ubo.tp.message.core.session.ISession;
-import main.java.com.ubo.tp.message.core.session.ISessionObserver;
-import main.java.com.ubo.tp.message.datamodel.User;
-import main.java.com.ubo.tp.message.ihm.MainContentView;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.HashSet;
-import java.util.UUID;
 
 /**
  * Contrôleur pour gérer le composant de login et la navigation
  */
-public class LoginController implements ISessionObserver {
-
-    /**
-     * Vue principale de l'application
-     */
-    private JFrame mainFrame;
-
-    /**
-     * Vue du contenu principal de l'application
-     */
-    private MainContentView mainContentView;
+public class LoginController {
 
     /**
      * Base de données de l'application
@@ -57,56 +34,14 @@ public class LoginController implements ISessionObserver {
     /**
      * Constructeur
      *
-     * @param mainFrame Fenêtre principale de l'application
      * @param database Base de données
      * @param entityManager Gestionnaire d'entités
      * @param session Session de l'application
      */
-    public LoginController(JFrame mainFrame, IDatabase database, EntityManager entityManager, ISession session) {
-        this.mainFrame = mainFrame;
+    public LoginController(IDatabase database, EntityManager entityManager, ISession session) {
         this.database = database;
         this.entityManager = entityManager;
         this.session = session;
-
-        // S'inscrire comme observateur de la session
-        session.addObserver(this);
-    }
-
-    /**
-     * Initialise le controller et affiche le composant de login
-     */
-    public void init() {
-        // Si l'utilisateur est déjà connecté, affiche le contenu principal
-        if (session.getConnectedUser() != null) {
-            showMainContent();
-        }
-    }
-
-    /**
-     * Définit le panneau de contenu principal à afficher après connexion
-     *
-     * @param mainContentView Panneau du contenu principal
-     */
-    public void setMainContentView(MainContentView mainContentView) {
-        this.mainContentView = mainContentView;
-    }
-
-    /**
-     * Affiche la vue principale après connexion
-     */
-    private void showMainContent() {
-        // Récupère le contentPane
-        Container contentPane = mainFrame.getContentPane();
-
-        // Vide le contentPane
-        contentPane.removeAll();
-
-        // Ajoute la vue principale
-        contentPane.add(mainContentView, BorderLayout.CENTER);
-
-        // Rafraîchit la vue
-        contentPane.revalidate();
-        contentPane.repaint();
     }
 
     /**
@@ -169,16 +104,10 @@ public class LoginController implements ISessionObserver {
         // Création du nouvel utilisateur
         User newUser = createUser(name, tag, password, avatarPath);
 
-        // Ajout à la base de données
-        database.addUser(newUser);
-
         // Génération du fichier utilisateur
         entityManager.writeUserFile(newUser);
 
-        // Ne plus connecter automatiquement l'utilisateur après l'inscription
-        // session.connect(newUser);
-
-        return null; // Pas d'erreur
+        return null;
     }
 
     /**
@@ -196,25 +125,4 @@ public class LoginController implements ISessionObserver {
         return new User(newUserId, tag, password, name, emptyFollows, avatarPath);
     }
 
-    /**
-     * Méthode appelée lors de la connexion d'un utilisateur
-     */
-    @Override
-    public void notifyLogin(User connectedUser) {
-        // Affiche la vue principale après connexion
-        showMainContent();
-    }
-
-    /**
-     * Méthode appelée lors de la déconnexion
-     */
-    @Override
-    public void notifyLogout() {
-        // Retourner à la vue de login
-        Container contentPane = mainFrame.getContentPane();
-        contentPane.removeAll();
-        contentPane.add(new LoginView(this), BorderLayout.CENTER);
-        contentPane.revalidate();
-        contentPane.repaint();
-    }
 }

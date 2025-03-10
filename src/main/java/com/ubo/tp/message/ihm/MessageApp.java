@@ -12,7 +12,9 @@ import main.java.com.ubo.tp.message.core.directory.IWatchableDirectory;
 import main.java.com.ubo.tp.message.core.directory.WatchableDirectory;
 import main.java.com.ubo.tp.message.core.notification.NotificationController;
 import main.java.com.ubo.tp.message.core.session.ISession;
+import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.core.session.Session;
+import main.java.com.ubo.tp.message.datamodel.User;
 import main.java.com.ubo.tp.message.ihm.login.LoginController;
 import main.java.com.ubo.tp.message.ihm.login.LoginView;
 import main.java.com.ubo.tp.message.ihm.menu.MenuController;
@@ -27,7 +29,7 @@ import javax.swing.UIManager;
  *
  * @author S.Lucas
  */
-public class MessageApp {
+public class MessageApp implements ISessionObserver {
 	/**
 	 * Base de données.
 	 */
@@ -116,6 +118,7 @@ public class MessageApp {
 
 		// Création de la session
 		this.mSession = new Session();
+		mSession.addObserver(this);
 
 	}
 
@@ -167,7 +170,7 @@ public class MessageApp {
 		this.mMainView = new MessageAppMainView(this);
 
 		// Initialisation des contrôleurs qui nécessitent la vue principale
-		this.mLoginController = new LoginController(this.mMainView, this.mDatabase, this.mEntityManager, this.mSession);
+		this.mLoginController = new LoginController(this.mDatabase, this.mEntityManager, this.mSession);
 		this.mMenuController = new MenuController(
 				this.mMainView,
 				this.mSession,
@@ -186,15 +189,9 @@ public class MessageApp {
 		// Configuration du menu de l'application
 		this.mMainView.setJMenuBar(this.mMenuController.getMenuView());
 
-		// Configuration de la vue de login et du contrôleur
-		this.mLoginController.setMainContentView(this.mMainContentView);
-
 		// Ajout de la vue de login au contentPane
 		Container contentPane = this.mMainView.getContentPane();
 		contentPane.add(this.mLoginView, BorderLayout.CENTER);
-
-		// Initialisation du contrôleur de login
-		this.mLoginController.init();
 
 		// Initialisation du contrôleur de menu
 		this.mMenuController.init();
@@ -325,6 +322,24 @@ public class MessageApp {
 	}
 
 	/**
+	 * Affiche la vue principale
+	 */
+	private void showMainContent() {
+		// Récupère le contentPane
+		Container contentPane = this.mMainView.getContentPane();
+
+		// Vide le contentPane
+		contentPane.removeAll();
+
+		// Ajoute la vue principale
+		contentPane.add(mMainContentView, BorderLayout.CENTER);
+
+		// Rafraîchit la vue
+		contentPane.revalidate();
+		contentPane.repaint();
+	}
+
+	/**
 	 * Retourne la base de données
 	 */
 	public IDatabase getDatabase() {
@@ -350,5 +365,19 @@ public class MessageApp {
 	 */
 	public NotificationController getNotificationController() {
 		return this.mNotificationController;
+	}
+
+	@Override
+	public void notifyLogin(User connectedUser) {
+		this.showMainContent();
+	}
+
+	@Override
+	public void notifyLogout() {
+		Container contentPane = this.mMainView.getContentPane();
+		contentPane.removeAll();
+		contentPane.add(new LoginView(this.mLoginController), BorderLayout.CENTER);
+		contentPane.revalidate();
+		contentPane.repaint();
 	}
 }
