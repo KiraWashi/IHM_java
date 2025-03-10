@@ -15,8 +15,10 @@ import main.java.com.ubo.tp.message.core.notification.NotificationController;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.core.session.Session;
-import main.java.com.ubo.tp.message.datamodel.Message;
+import main.java.com.ubo.tp.message.datamodel.message.IMessage;
+import main.java.com.ubo.tp.message.datamodel.message.Message;
 import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.datamodel.message.MessageList;
 import main.java.com.ubo.tp.message.ihm.login.LoginController;
 import main.java.com.ubo.tp.message.ihm.login.LoginView;
 import main.java.com.ubo.tp.message.ihm.menu.MenuController;
@@ -42,6 +44,8 @@ public class MessageApp implements ISessionObserver, Actions, IDatabaseObserver 
 	 * Base de données.
 	 */
 	protected IDatabase mDatabase;
+
+	protected IMessage mMessageList;
 
 	/**
 	 * Gestionnaire des entités contenu de la base de données.
@@ -130,8 +134,9 @@ public class MessageApp implements ISessionObserver, Actions, IDatabaseObserver 
 		this.mDatabase = database;
 		this.mEntityManager = entityManager;
 		this.mSession = new Session();
-		mSession.addObserver(this);
-		database.addObserver(this);
+		this.mSession.addObserver(this);
+		this.mDatabase.addObserver(this);
+		this.mMessageList = new MessageList();
 	}
 
 	/**
@@ -186,7 +191,7 @@ public class MessageApp implements ISessionObserver, Actions, IDatabaseObserver 
 		// Création de la vue de login
 		this.mLoginView = new LoginView(this.mLoginController);
 
-		this.messageListView = new MessageListView(this.mMessageListController, this.mSession);
+		this.messageListView = new MessageListView(this.mMessageListController, this.mSession, this.mMessageList);
 
 		this.messageComposeView = new MessageComposeView(this.mMessageComposeController, this.mSession);
 
@@ -199,7 +204,7 @@ public class MessageApp implements ISessionObserver, Actions, IDatabaseObserver 
 		this.mMenuView = new MenuView(this.mMenuController, this.mSession);
 
 		this.messageComposeView = new MessageComposeView(this.mMessageComposeController, this.mSession);
-		this.messageListView = new MessageListView(this.mMessageListController, this.mSession);
+		this.messageListView = new MessageListView(this.mMessageListController, this.mSession, this.mMessageList);
 		this.userListView = new UserListView(this.mUserController, this.mSession);
 		this.notificationView = new NotificationView(this.mNotificationController);
 	}
@@ -384,10 +389,12 @@ public class MessageApp implements ISessionObserver, Actions, IDatabaseObserver 
 
 	@Override
 	public void notifyLogin(User connectedUser) {
-		this.showMainContent();
+		this.userListView.login(connectedUser);
+		this.messageListView.refreshMessages();
+		this.mMessageList.refreshMessage();
 		this.mMainContentView.updateUIState();
 		this.mMainView.login(connectedUser);
-		this.userListView.login(connectedUser);
+		this.showMainContent();
 	}
 
 	@Override
@@ -397,38 +404,41 @@ public class MessageApp implements ISessionObserver, Actions, IDatabaseObserver 
 		contentPane.add(new LoginView(this.mLoginController), BorderLayout.CENTER);
 		contentPane.revalidate();
 		contentPane.repaint();
-		this.mMainContentView.updateUIState();
 		this.mMainView.logout();
 		this.userListView.logout();
+		this.mMainContentView.updateUIState();
 	}
 
 	@Override
 	public void notifyMessageAdded(Message addedMessage) {
-		this.messageListView.refreshMessages();
+		this.mMessageList.addMessage(addedMessage);
 	}
 
 	@Override
 	public void notifyMessageDeleted(Message deletedMessage) {
-		this.messageListView.refreshMessages();
+		this.mMessageList.removeMessage(deletedMessage);
 	}
 
 	@Override
 	public void notifyMessageModified(Message modifiedMessage) {
-		this.messageListView.refreshMessages();
+
 	}
 
 	@Override
 	public void notifyUserAdded(User addedUser) {
 		this.messageListView.refreshMessages();
+		this.mMainContentView.repaint();
 	}
 
 	@Override
 	public void notifyUserDeleted(User deletedUser) {
 		this.messageListView.refreshMessages();
+		this.mMainContentView.repaint();
 	}
 
 	@Override
 	public void notifyUserModified(User modifiedUser) {
 		this.messageListView.refreshMessages();
+		this.mMainContentView.repaint();
 	}
 }

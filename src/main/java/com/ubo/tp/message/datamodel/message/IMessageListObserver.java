@@ -1,11 +1,9 @@
 package main.java.com.ubo.tp.message.datamodel.message;
 
-import main.java.com.ubo.tp.message.core.session.ISessionObserver;
-
 /**
- * Interface observer d'un message
+ * Interface permettant de placer des messages observer dans les listes
  */
-public interface IMessageObserver {
+public interface IMessageListObserver {
     /**
      * Notification lorsqu'un Message est ajouté.
      *
@@ -19,4 +17,7 @@ public interface IMessageObserver {
      * @param deletedMessage Le message supprimé
      */
     void notifyMessageDeleted(Message deletedMessage);
+
+    void notifyRefreshMessage();
+
 }

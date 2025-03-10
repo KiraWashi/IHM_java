@@ -1,20 +1,31 @@
 package main.java.com.ubo.tp.message.datamodel.message;
 
 /**
- * Interface permettant de placer des messages observer dans les listes
+ * Interface observer d'un message
  */
-public interface IMessageListObservable {
+public interface IMessage {
+
+
     /**
      * Ajoute un observateur de messages.
      *
      * @param observer L'observateur à ajouter
      */
-    void addObserver(IMessageObserver observer);
+    void addObserver(IMessageListObserver observer);
 
     /**
      * Retire un observateur de messages.
      *
      * @param observer L'observateur à retirer
      */
-    void removeObserver(IMessageObserver observer);
+    void removeObserver(IMessageListObserver observer);
+
+    void addMessage(Message message);
+
+    void removeMessage(Message message);
+    void refreshMessage();
+
+
+
+
 }

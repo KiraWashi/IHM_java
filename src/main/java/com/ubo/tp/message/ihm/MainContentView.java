@@ -76,9 +76,6 @@ public class MainContentView extends JPanel {
     private void initUI() {
         this.setLayout(new BorderLayout());
 
-        // Initialisation des vues
-
-
         // Bouton de notification
         NotificationButton notificationButton = new NotificationButton(notificationController);
 
@@ -90,6 +87,8 @@ public class MainContentView extends JPanel {
         timelinePanel.add(messageListView, BorderLayout.CENTER);
         timelinePanel.add(messageComposeView, BorderLayout.SOUTH);
         tabbedPane.addTab("Fil d'actualité", timelinePanel);
+
+        messageListView.refreshMessages();
 
         // Onglet "Utilisateurs"
         tabbedPane.addTab("Utilisateurs", userListView);

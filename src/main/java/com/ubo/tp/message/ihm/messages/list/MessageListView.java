@@ -14,17 +14,16 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import main.java.com.ubo.tp.message.core.database.IDatabaseObserver;
 import main.java.com.ubo.tp.message.core.session.ISession;
-import main.java.com.ubo.tp.message.core.session.ISessionObserver;
-import main.java.com.ubo.tp.message.datamodel.Message;
-import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.datamodel.message.Message;
+import main.java.com.ubo.tp.message.datamodel.message.IMessage;
+import main.java.com.ubo.tp.message.datamodel.message.IMessageListObserver;
 import main.java.com.ubo.tp.message.ihm.messages.list.cell.MessageCellView;
 
 /**
  * Composant d'affichage de la liste des messages
  */
-public class MessageListView extends JPanel {
+public class MessageListView extends JPanel implements IMessageListObserver {
 
     /**
      * Chemin vers les icônes
@@ -61,16 +60,20 @@ public class MessageListView extends JPanel {
      */
     private final SimpleDateFormat dateFormat;
 
+    private IMessage messageList;
+
     /**
      * Constructeur
      *
      * @param messageListController Contrôleur de liste de messages
      * @param session Session active
      */
-    public MessageListView(MessageListController messageListController, ISession session) {
+    public MessageListView(MessageListController messageListController, ISession session, IMessage message) {
         this.messageListController = messageListController;
         this.session = session;
+        this.messageList = message;
         this.dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        this.messageList.addObserver(this);
 
         // Initialisation de l'interface
         this.initUI();
@@ -112,9 +115,6 @@ public class MessageListView extends JPanel {
         searchPanel.add(searchField, BorderLayout.CENTER);
 
         // Bouton de recherche
-        /**
-         * Bouton de recherche
-         */
         JButton searchButton = new JButton("Rechercher");
         try {
             searchButton.setIcon(new ImageIcon(ImageIO.read(new File(ICON_PATH + "searchIcon_20.png"))));
@@ -165,6 +165,7 @@ public class MessageListView extends JPanel {
             searchMessages();
         } else {
             List<Message> messages = messageListController.getRelevantMessages();
+            System.out.println(messages.size());
             displayMessages(messages);
         }
     }
@@ -221,5 +222,21 @@ public class MessageListView extends JPanel {
             }
         });
     }
+
+    @Override
+    public void notifyMessageAdded(Message addedMessage) {
+        refreshMessages();
+    }
+
+    @Override
+    public void notifyMessageDeleted(Message deletedMessage) {
+        refreshMessages();
+    }
+
+    @Override
+    public void notifyRefreshMessage() {
+        refreshMessages();
+    }
+
 
 }

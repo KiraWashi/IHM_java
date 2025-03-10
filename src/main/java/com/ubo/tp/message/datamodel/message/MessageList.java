@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import main.java.com.ubo.tp.message.core.session.ISessionObserver;
+import main.java.com.ubo.tp.message.core.database.IDatabaseObserver;
 import main.java.com.ubo.tp.message.datamodel.User;
 
 /**
@@ -12,12 +12,12 @@ import main.java.com.ubo.tp.message.datamodel.User;
  *
  * @author S.Lucas
  */
-public class MessageList implements IMessageObserver {
+public class MessageList implements IMessage {
     /**
      * Liste des observateurs de messages.
      * Utilisation de CopyOnWriteArrayList pour éviter les ConcurrentModificationException
      */
-    protected List<IMessageObserver> mObservers = new CopyOnWriteArrayList<>();
+    protected List<IMessageListObserver> mObservers = new CopyOnWriteArrayList<>();
 
     /**
      * Liste des messages.
@@ -33,7 +33,16 @@ public class MessageList implements IMessageObserver {
         if (message != null && !messages.contains(message)) {
             messages.add(message);
             // Notification des observateurs
-            notifyMessageAdded(message);
+            for (IMessageListObserver observer : mObservers) {
+                observer.notifyMessageAdded(message);
+            }
+        }
+    }
+
+
+    public void refreshMessage() {
+        for (IMessageListObserver observer : mObservers) {
+            observer.notifyRefreshMessage();
         }
     }
 
@@ -46,7 +55,9 @@ public class MessageList implements IMessageObserver {
         if (message != null && messages.contains(message)) {
             messages.remove(message);
             // Notification des observateurs
-            notifyMessageDeleted(message);
+            for (IMessageListObserver observer : mObservers) {
+                observer.notifyMessageDeleted(message);
+            }
         }
     }
 
@@ -74,7 +85,7 @@ public class MessageList implements IMessageObserver {
      *
      * @param observer L'observateur à ajouter
      */
-    public void addObserver(IMessageObserver observer) {
+    public void addObserver(IMessageListObserver observer) {
         if (observer != null && !mObservers.contains(observer)) {
             mObservers.add(observer);
         }
@@ -85,7 +96,7 @@ public class MessageList implements IMessageObserver {
      *
      * @param observer L'observateur à retirer
      */
-    public void removeObserver(IMessageObserver observer) {
+    public void removeObserver(IMessageListObserver observer) {
         if (observer != null) {
             mObservers.remove(observer);
         }
@@ -143,22 +154,6 @@ public class MessageList implements IMessageObserver {
             }
         }
         return taggedMessages;
-    }
-
-    // Implémentation des méthodes de l'interface IMessageObserver
-
-    @Override
-    public void notifyMessageAdded(Message addedMessage) {
-        for (IMessageObserver observer : mObservers) {
-            observer.notifyMessageAdded(addedMessage);
-        }
-    }
-
-    @Override
-    public void notifyMessageDeleted(Message deletedMessage) {
-        for (IMessageObserver observer : mObservers) {
-            observer.notifyMessageDeleted(deletedMessage);
-        }
     }
 
 }

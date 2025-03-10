@@ -11,7 +11,7 @@ import main.java.com.ubo.tp.message.common.Constants;
 import main.java.com.ubo.tp.message.common.DataFilesManager;
 import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.directory.IWatchableDirectoryObserver;
-import main.java.com.ubo.tp.message.datamodel.Message;
+import main.java.com.ubo.tp.message.datamodel.message.Message;
 import main.java.com.ubo.tp.message.datamodel.User;
 
 /**

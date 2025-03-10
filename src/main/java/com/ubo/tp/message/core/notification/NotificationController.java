@@ -2,7 +2,7 @@ package main.java.com.ubo.tp.message.core.notification;
 
 import java.util.*;
 
-import main.java.com.ubo.tp.message.datamodel.Message;
+import main.java.com.ubo.tp.message.datamodel.message.Message;
 import main.java.com.ubo.tp.message.datamodel.Notification;
 import main.java.com.ubo.tp.message.datamodel.User;
 import main.java.com.ubo.tp.message.core.database.IDatabase;

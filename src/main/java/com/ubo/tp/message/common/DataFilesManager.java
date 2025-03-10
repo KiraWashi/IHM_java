@@ -8,7 +8,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
-import main.java.com.ubo.tp.message.datamodel.Message;
+import main.java.com.ubo.tp.message.datamodel.message.Message;
 import main.java.com.ubo.tp.message.datamodel.User;
 
 /**
