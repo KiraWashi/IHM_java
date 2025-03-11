@@ -11,7 +11,7 @@ import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.database.IDatabaseObserver;
 import main.java.com.ubo.tp.message.core.directory.IWatchableDirectory;
 import main.java.com.ubo.tp.message.core.directory.WatchableDirectory;
-import main.java.com.ubo.tp.message.core.notification.NotificationController;
+import main.java.com.ubo.tp.message.ihm.notifications.NotificationController;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.core.session.Session;
@@ -19,6 +19,8 @@ import main.java.com.ubo.tp.message.datamodel.message.IMessage;
 import main.java.com.ubo.tp.message.datamodel.message.Message;
 import main.java.com.ubo.tp.message.datamodel.User;
 import main.java.com.ubo.tp.message.datamodel.message.MessageList;
+import main.java.com.ubo.tp.message.datamodel.notification.INotification;
+import main.java.com.ubo.tp.message.datamodel.notification.NotificationList;
 import main.java.com.ubo.tp.message.ihm.login.LoginController;
 import main.java.com.ubo.tp.message.ihm.login.LoginView;
 import main.java.com.ubo.tp.message.ihm.menu.MenuController;
@@ -46,6 +48,11 @@ public class MessageApp implements ISessionObserver, Actions, IDatabaseObserver 
 	protected IDatabase mDatabase;
 
 	protected IMessage mMessageList;
+
+	/**
+	 * Liste des notifications
+	 */
+	protected INotification mNotificationList;
 
 	/**
 	 * Gestionnaire des entités contenu de la base de données.
@@ -137,6 +144,7 @@ public class MessageApp implements ISessionObserver, Actions, IDatabaseObserver 
 		this.mSession.addObserver(this);
 		this.mDatabase.addObserver(this);
 		this.mMessageList = new MessageList();
+		this.mNotificationList = new NotificationList();
 	}
 
 	/**
@@ -198,6 +206,7 @@ public class MessageApp implements ISessionObserver, Actions, IDatabaseObserver 
 		this.userListView = new UserListView(this.mUserController, this.mSession);
 
 		this.notificationView = new NotificationView(this.mNotificationController);
+
 		// Création de la vue de contenu principal
 		this.mMainContentView = new MainContentView(this.mSession, this.mNotificationController, this.messageListView, this.messageComposeView, this.userListView, this.notificationView);
 
@@ -206,7 +215,6 @@ public class MessageApp implements ISessionObserver, Actions, IDatabaseObserver 
 		this.messageComposeView = new MessageComposeView(this.mMessageComposeController, this.mSession);
 		this.messageListView = new MessageListView(this.mMessageListController, this.mSession, this.mMessageList);
 		this.userListView = new UserListView(this.mUserController, this.mSession);
-		this.notificationView = new NotificationView(this.mNotificationController);
 	}
 
 	/**

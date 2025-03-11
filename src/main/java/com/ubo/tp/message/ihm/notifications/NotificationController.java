@@ -1,9 +1,11 @@
-package main.java.com.ubo.tp.message.core.notification;
+package main.java.com.ubo.tp.message.ihm.notifications;
 
 import java.util.*;
 
+import main.java.com.ubo.tp.message.core.notification.NotificationManager;
 import main.java.com.ubo.tp.message.datamodel.message.Message;
-import main.java.com.ubo.tp.message.datamodel.Notification;
+import main.java.com.ubo.tp.message.datamodel.notification.Notification;
+import main.java.com.ubo.tp.message.datamodel.notification.NotificationList;
 import main.java.com.ubo.tp.message.datamodel.User;
 import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.database.IDatabaseObserver;
@@ -16,19 +18,18 @@ import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 public class NotificationController implements IDatabaseObserver, ISessionObserver {
 
     private final IDatabase database;
-    private final List<Notification> notifications;
-    private final Set<INotificationObserver> observers;
+    private final NotificationList notificationList;
     private User connectedUser;
 
     private NotificationManager notificationManager;
     private Set<UUID> readMessageIds = new HashSet<>();
+
     /**
      * Constructeur
      */
     public NotificationController(IDatabase database, ISession session, String exchangeDirectory) {
         this.database = database;
-        this.notifications = new ArrayList<>();
-        this.observers = new HashSet<>();
+        this.notificationList = new NotificationList();
         this.notificationManager = new NotificationManager(exchangeDirectory);
 
         // S'enregistrer comme observateur
@@ -40,38 +41,23 @@ public class NotificationController implements IDatabaseObserver, ISessionObserv
      * Ajoute une notification
      */
     public void addNotification(Notification notification) {
-        this.notifications.add(notification);
-        notifyObservers();
+        this.notificationList.addNotification(notification);
+        // La notification des observateurs est gérée par les callbacks de la NotificationList
     }
 
     /**
      * Marque toutes les notifications comme lues
      */
     public void markAllAsRead() {
-        boolean changed = false;
-
-        for (Notification notification : notifications) {
-            if (!notification.isRead()) {
-                notification.markAsRead();
-                // Ajouter l'ID du message à la liste des messages lus
-                readMessageIds.add(notification.getMessage().getUuid());
-                changed = true;
-            }
-        }
-
-        if (changed && connectedUser != null) {
-            // Sauvegarder les notifications lues
-            notificationManager.saveReadNotifications(connectedUser, readMessageIds);
-            notifyObservers();
-        }
+        this.notificationList.markAllNotificationsAsRead();
+        notificationManager.saveReadNotifications(connectedUser, readMessageIds);
     }
-
 
     /**
      * Retourne toutes les notifications
      */
     public List<Notification> getAllNotifications() {
-        return new ArrayList<>(notifications);
+        return notificationList.getNotifications();
     }
 
     /**
@@ -80,7 +66,7 @@ public class NotificationController implements IDatabaseObserver, ISessionObserv
     public int getUnreadCount() {
         int count = 0;
 
-        for (Notification notification : notifications) {
+        for (Notification notification : notificationList.getNotifications()) {
             if (!notification.isRead()) {
                 count++;
             }
@@ -89,37 +75,17 @@ public class NotificationController implements IDatabaseObserver, ISessionObserv
         return count;
     }
 
-    /**
-     * Ajoute un observateur
-     */
-    public void addObserver(INotificationObserver observer) {
-        observers.add(observer);
-    }
-
-    /**
-     * Retire un observateur
-     */
-    public void removeObserver(INotificationObserver observer) {
-        observers.remove(observer);
-    }
-
-    /**
-     * Notifie tous les observateurs
-     */
-    private void notifyObservers() {
-        for (INotificationObserver observer : observers) {
-            observer.notifyNotificationChanged();
-        }
-    }
 
 
     @Override
     public void notifyLogout() {
         this.connectedUser = null;
-        // Réinitialiser les notifications lors de la déconnexion
-        this.notifications.clear();
-        // Notifier les observateurs
-        notifyObservers();
+
+        // Récupérer toutes les notifications pour les retirer une par une
+        List<Notification> allNotifications = new ArrayList<>(notificationList.getNotifications());
+        for (Notification notification : allNotifications) {
+            notificationList.removeNotification(notification);
+        }
     }
 
     /**
@@ -130,17 +96,10 @@ public class NotificationController implements IDatabaseObserver, ISessionObserv
         if (connectedUser != null) {
             User sender = addedMessage.getSender();
 
-            // Pour le débogage : afficher toujours les informations
-            System.out.println("Message reçu de : " + sender.getUserTag());
-            System.out.println("User connecté : " + connectedUser.getUserTag());
-            System.out.println("isFollowing : " + connectedUser.isFollowing(sender));
-            System.out.println("Follows list : " + connectedUser.getFollows());
-
             // Version modifiée pour test : notifier pour tout message qui n'est pas de l'utilisateur lui-même
             if (!sender.equals(connectedUser)) {
                 Notification notification = new Notification(addedMessage, sender);
                 addNotification(notification);
-                System.out.println("Notification créée pour: " + addedMessage.getText());
             }
         }
     }
@@ -179,6 +138,7 @@ public class NotificationController implements IDatabaseObserver, ISessionObserv
         System.out.println("Chargement des messages existants pour " + connectedUser.getUserTag());
 
         Set<Message> allMessages = database.getMessages();
+        List<Notification> notificationsToAdd = new ArrayList<>();
 
         for (Message message : allMessages) {
             User sender = message.getSender();
@@ -194,30 +154,30 @@ public class NotificationController implements IDatabaseObserver, ISessionObserv
                         notification.markAsRead();
                     }
 
-                    notifications.add(notification);
+                    notificationsToAdd.add(notification);
                 }
             }
         }
 
         // Tri des notifications par date (plus récentes d'abord)
-        Collections.sort(notifications, new Comparator<Notification>() {
-            @Override
-            public int compare(Notification n1, Notification n2) {
-                return n2.getCreationDate().compareTo(n1.getCreationDate());
-            }
-        });
+        Collections.sort(notificationsToAdd, (n1, n2) ->
+                n2.getCreationDate().compareTo(n1.getCreationDate()));
 
-        // Notifier les observateurs
-        if (!notifications.isEmpty()) {
-            notifyObservers();
+        // Ajouter les notifications triées
+        for (Notification notification : notificationsToAdd) {
+            notificationList.addNotification(notification);
         }
     }
 
-    // Modifiez la méthode notifyLogin pour charger les notifications au moment de la connexion
     @Override
     public void notifyLogin(User connectedUser) {
         this.connectedUser = connectedUser;
-        this.notifications.clear();
+
+        // Vider la liste de notifications actuelle
+        List<Notification> currentNotifications = new ArrayList<>(notificationList.getNotifications());
+        for (Notification notification : currentNotifications) {
+            notificationList.removeNotification(notification);
+        }
 
         // Charger les notifications lues pour l'utilisateur
         this.readMessageIds = notificationManager.loadReadNotifications(connectedUser);
@@ -244,7 +204,23 @@ public class NotificationController implements IDatabaseObserver, ISessionObserv
         // Recharger les notifications si un utilisateur est connecté
         if (this.connectedUser != null) {
             this.readMessageIds = notificationManager.loadReadNotifications(connectedUser);
+
+            // Vider la liste de notifications actuelle
+            List<Notification> currentNotifications = new ArrayList<>(notificationList.getNotifications());
+            for (Notification notification : currentNotifications) {
+                notificationList.removeNotification(notification);
+            }
+
+            // Recharger les notifications
             loadExistingMessages();
         }
     }
+
+    /**
+     * Retourne la liste de notifications gérée par ce contrôleur
+     */
+    public NotificationList getNotificationList() {
+        return notificationList;
+    }
+
 }

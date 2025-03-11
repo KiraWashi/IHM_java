@@ -2,38 +2,43 @@ package main.java.com.ubo.tp.message.ihm.notifications;
 
 import java.awt.*;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
-import main.java.com.ubo.tp.message.core.notification.INotificationObserver;
-import main.java.com.ubo.tp.message.core.notification.NotificationController;
-import main.java.com.ubo.tp.message.datamodel.Notification;
+import main.java.com.ubo.tp.message.datamodel.notification.INotificationListObserver;
+import main.java.com.ubo.tp.message.datamodel.notification.Notification;
+
+
 
 /**
  * Vue pour afficher les notifications
  */
-public class NotificationView extends JPanel implements INotificationObserver {
+public class NotificationView extends JPanel implements INotificationListObserver {
 
-    private final NotificationController notificationController;
+
     private JPanel notificationsPanel;
     private final SimpleDateFormat dateFormat;
+    private final NotificationController controller;
 
     /**
      * Constructeur
      */
-    public NotificationView(NotificationController notificationController) {
-        this.notificationController = notificationController;
+    public NotificationView(NotificationController controller) {
         this.dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        this.controller = controller;
 
         // S'abonner aux changements de notifications
-        this.notificationController.addObserver(this);
+        this.controller.getNotificationList().addObserver(this);
 
         // Initialisation de l'interface
         this.initUI();
 
         // Affichage initial des notifications
         this.refreshNotifications();
+
     }
 
     /**
@@ -52,8 +57,7 @@ public class NotificationView extends JPanel implements INotificationObserver {
         // Bouton pour marquer toutes les notifications comme lues
         JButton markAllReadButton = new JButton("Marquer tout comme lu");
         markAllReadButton.addActionListener(e -> {
-            notificationController.markAllAsRead();
-            refreshNotifications();
+            this.controller.markAllAsRead();
         });
         headerPanel.add(markAllReadButton, BorderLayout.EAST);
         headerPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
@@ -72,13 +76,21 @@ public class NotificationView extends JPanel implements INotificationObserver {
         this.add(scrollPane, BorderLayout.CENTER);
     }
 
+
     /**
-     * Rafraîchit la liste des notifications
+     * Rafraîchit la liste des notifications tout en préservant la position de défilement
      */
     public void refreshNotifications() {
+        // Sauvegarde de la position de défilement actuelle
+        JScrollPane scrollPane = (JScrollPane) notificationsPanel.getParent().getParent();
+        JViewport viewport = scrollPane.getViewport();
+        Point viewPosition = viewport.getViewPosition();
+
+        // Désactiver le rafraîchissement de l'UI pendant les modifications
+        notificationsPanel.setVisible(false);
         notificationsPanel.removeAll();
 
-        List<Notification> notifications = notificationController.getAllNotifications();
+        List<Notification> notifications = this.controller.getNotificationList().getNotifications();
 
         if (notifications.isEmpty()) {
             JLabel emptyLabel = new JLabel("Aucune notification");
@@ -89,7 +101,12 @@ public class NotificationView extends JPanel implements INotificationObserver {
             notificationsPanel.add(emptyLabel);
             notificationsPanel.add(Box.createVerticalGlue());
         } else {
-            for (Notification notification : notifications) {
+            // Trier les notifications par date de création (plus récentes en premier)
+            List<Notification> sortedNotifications = new ArrayList<>(notifications);
+            Collections.sort(sortedNotifications, (n1, n2) ->
+                    n2.getCreationDate().compareTo(n1.getCreationDate()));
+
+            for (Notification notification : sortedNotifications) {
                 // Création d'un panel pour chaque notification
                 JPanel notificationPanel = createNotificationPanel(notification);
                 notificationsPanel.add(notificationPanel);
@@ -103,8 +120,21 @@ public class NotificationView extends JPanel implements INotificationObserver {
             }
         }
 
+        // Réactiver l'affichage après les modifications
+        notificationsPanel.setVisible(true);
+
+        // Mettre à jour l'interface
         notificationsPanel.revalidate();
-        notificationsPanel.repaint();
+
+        // Restaurer la position de défilement
+        SwingUtilities.invokeLater(() -> {
+            // Vérifier que la position n'est pas en dehors des limites
+            int maxX = Math.max(0, notificationsPanel.getWidth() - viewport.getWidth());
+            int maxY = Math.max(0, notificationsPanel.getHeight() - viewport.getHeight());
+            int x = Math.min(viewPosition.x, maxX);
+            int y = Math.min(viewPosition.y, maxY);
+            viewport.setViewPosition(new Point(x, y));
+        });
     }
 
     /**
@@ -172,7 +202,18 @@ public class NotificationView extends JPanel implements INotificationObserver {
     }
 
     @Override
-    public void notifyNotificationChanged() {
-        SwingUtilities.invokeLater(() -> refreshNotifications());
+    public void notifyNotificationAdded(Notification addedNotification) {
+        SwingUtilities.invokeLater(this::refreshNotifications);
+    }
+
+    @Override
+    public void notifyNotificationRemoved(Notification removedNotification) {
+        SwingUtilities.invokeLater(this::refreshNotifications);
+    }
+
+    @Override
+    public void notifyNotificationsRead() {
+        //arrive quand on clique sur marquer tout comme lu
+        SwingUtilities.invokeLater(this::refreshNotifications);
     }
 }

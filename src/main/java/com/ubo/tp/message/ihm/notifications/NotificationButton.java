@@ -1,48 +1,44 @@
 package main.java.com.ubo.tp.message.ihm.notifications;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.Ellipse2D;
 import javax.swing.*;
 
-import main.java.com.ubo.tp.message.core.notification.INotificationObserver;
-import main.java.com.ubo.tp.message.core.notification.NotificationController;
+import main.java.com.ubo.tp.message.datamodel.notification.INotificationListObserver;
+import main.java.com.ubo.tp.message.datamodel.notification.Notification;
 
 /**
  * Bouton de notification avec compteur
  */
-public class NotificationButton extends JButton implements INotificationObserver {
+public class NotificationButton extends JButton implements INotificationListObserver {
 
-    private final NotificationController notificationController;
     private int unreadCount;
+    private final NotificationController controller;
 
     /**
      * Constructeur
      */
     public NotificationButton(NotificationController notificationController) {
-        this.notificationController = notificationController;
+
         this.unreadCount = notificationController.getUnreadCount();
+        this.controller = notificationController;
 
         // S'abonner aux changements de notifications
-        this.notificationController.addObserver(this);
+        notificationController.getNotificationList().addObserver(this);
 
         // Initialisation de l'interface
         this.initUI();
         // Dans le constructeur de NotificationButton, ajouter:
-        addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Sélectionner l'onglet des notifications (index 2)
-                Component parent = getParent();
-                while (parent != null && !(parent instanceof JTabbedPane)) {
-                    parent = parent.getParent();
-                }
+        addActionListener(e -> {
+            // Sélectionner l'onglet des notifications (index 2)
+            Component parent = getParent();
+            while (parent != null && !(parent instanceof JTabbedPane)) {
+                parent = parent.getParent();
+            }
 
-                if (parent != null) {
-                    JTabbedPane tabbedPane = (JTabbedPane) parent;
-                    tabbedPane.setSelectedIndex(2);
-                }
+            if (parent != null) {
+                JTabbedPane tabbedPane = (JTabbedPane) parent;
+                tabbedPane.setSelectedIndex(2);
             }
         });
     }
@@ -103,9 +99,27 @@ public class NotificationButton extends JButton implements INotificationObserver
     }
 
     @Override
-    public void notifyNotificationChanged() {
-        this.unreadCount = notificationController.getUnreadCount();
+    public void notifyNotificationAdded(Notification addedNotification) {
+       this.unreadCount=this.controller.getUnreadCount();
+        System.out.println(unreadCount);
         setIcon(createIcon());
         repaint();
     }
+
+    @Override
+    public void notifyNotificationRemoved(Notification removedNotification) {
+        this.unreadCount=this.controller.getUnreadCount();
+        System.out.println(unreadCount);
+        setIcon(createIcon());
+        repaint();
+    }
+
+    @Override
+    public void notifyNotificationsRead() {
+        this.unreadCount = 0; // Toutes les notifications ont été lues
+        // Mettre à jour l'icône (qui disparaîtra car unreadCount = 0)
+        setIcon(createIcon());
+        repaint();
+    }
+
 }
