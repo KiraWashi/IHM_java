@@ -1,11 +1,13 @@
 package main.java.com.ubo.tp.message.datamodel.message;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import main.java.com.ubo.tp.message.core.database.IDatabaseObserver;
-import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.datamodel.user.User;
 
 /**
  * Session de l'application.
@@ -36,6 +38,17 @@ public class MessageList implements IMessage {
             for (IMessageListObserver observer : mObservers) {
                 observer.notifyMessageAdded(message);
             }
+        }
+    }
+
+    @Override
+    public void modifiyMessage(Message messageToModify) {
+        // Le ré-ajout va écraser l'ancienne copie.
+        this.messages.add(messageToModify);
+
+        // Notification des observateurs
+        for (IMessageListObserver observer : mObservers) {
+            observer.notifyMessageModified(messageToModify);
         }
     }
 
@@ -119,6 +132,7 @@ public class MessageList implements IMessage {
         }
         return userMessages;
     }
+
 
     /**
      * Recherche les messages contenant un tag spécifique

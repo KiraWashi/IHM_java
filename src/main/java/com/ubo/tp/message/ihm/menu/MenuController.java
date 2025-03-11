@@ -2,10 +2,11 @@ package main.java.com.ubo.tp.message.ihm.menu;
 
 import java.io.File;
 
-import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
-import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.datamodel.message.IMessage;
+import main.java.com.ubo.tp.message.datamodel.user.IUser;
+import main.java.com.ubo.tp.message.datamodel.user.User;
 import main.java.com.ubo.tp.message.ihm.Actions;
 
 /**
@@ -38,7 +39,9 @@ public class MenuController implements ISessionObserver {
     /**
      * Base de données
      */
-    private final IDatabase database;
+    private final IMessage messageList;
+
+    private final IUser userList;
 
     /**
      * Interface pour déléguer les actions spécifiques à l'application
@@ -49,11 +52,11 @@ public class MenuController implements ISessionObserver {
      * Constructeur.
      *
      * @param session La session de l'application
-     * @param database La base de données
      */
-    public MenuController(ISession session, IDatabase database, Actions action) {
+    public MenuController(ISession session, IMessage message, IUser user, Actions action) {
         this.session = session;
-        this.database = database;
+        this.messageList = message;
+        this.userList = user;
         this.action = action;
 
         // S'abonner aux événements de session
@@ -130,7 +133,7 @@ public class MenuController implements ISessionObserver {
      * @return Nombre de followers
      */
     public int getFollowersCount(User user) {
-        return database.getFollowersCount(user);
+        return userList.getFollowersCount(user);
     }
 
     /**
@@ -140,7 +143,7 @@ public class MenuController implements ISessionObserver {
      * @return Nombre de messages
      */
     public int getUserMessagesCount(User user) {
-        return database.getUserMessages(user).size();
+        return messageList.getUserMessages(user).size();
     }
 
     /**

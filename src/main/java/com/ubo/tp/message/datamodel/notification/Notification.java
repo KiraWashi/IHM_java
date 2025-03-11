@@ -2,6 +2,7 @@ package main.java.com.ubo.tp.message.datamodel.notification;
 
 import main.java.com.ubo.tp.message.datamodel.User;
 import main.java.com.ubo.tp.message.datamodel.message.Message;
+import main.java.com.ubo.tp.message.datamodel.user.User;
 
 import java.util.Date;
 

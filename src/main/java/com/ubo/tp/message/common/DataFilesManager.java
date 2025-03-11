@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import main.java.com.ubo.tp.message.datamodel.message.Message;
-import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.datamodel.user.User;
 
 /**
  * Classe de gestion des conversion des objets entre le datamodel et les
@@ -80,7 +80,6 @@ public class DataFilesManager {
 	/**
 	 * Lecture du fichier de propriété pour un {@link User}
 	 *
-	 * @param userFileName
 	 */
 	public static User readUser(File userFile) {
 		User user = null;
