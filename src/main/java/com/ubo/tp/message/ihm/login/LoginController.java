@@ -103,7 +103,7 @@ public class LoginController {
         // Génération du fichier utilisateur
         entityManager.writeUserFile(newUser);
 
-        userList.addUser(newUser);
+        //userList.addUser(newUser);
 
 
         return null;

@@ -1,12 +1,7 @@
 package main.java.com.ubo.tp.message.ihm.messages.list;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.datamodel.message.IMessage;
 import main.java.com.ubo.tp.message.datamodel.message.Message;
@@ -55,10 +50,9 @@ public class MessageListController {
         Set<String> followedTags = currentUser.getFollows();
 
         // Ensemble des messages à afficher
-        Set<Message> relevantMessages = new HashSet<>();
 
         // Messages de l'utilisateur connecté
-        relevantMessages.addAll(messageList.getUserMessages(currentUser));
+        Set<Message> relevantMessages = new HashSet<>(messageList.getUserMessages(currentUser));
 
         // Messages des utilisateurs suivis
         for (User user : userList.getUsers()) {
@@ -69,12 +63,7 @@ public class MessageListController {
 
         // Conversion en liste et tri
         List<Message> messageList = new ArrayList<>(relevantMessages);
-        messageList.sort(new Comparator<Message>() {
-            @Override
-            public int compare(Message m1, Message m2) {
-                return Long.compare(m1.getEmissionDate(), m2.getEmissionDate());
-            }
-        });
+        messageList.sort(Comparator.comparingLong(Message::getEmissionDate));
 
         return messageList;
     }
@@ -133,13 +122,7 @@ public class MessageListController {
 
         // Conversion en liste et tri
         List<Message> messageList = new ArrayList<>(searchResults);
-        messageList.sort(new Comparator<Message>() {
-            @Override
-            public int compare(Message m1, Message m2) {
-                // Tri par date (plus ancien en premier comme demandé)
-                return Long.compare(m1.getEmissionDate(), m2.getEmissionDate());
-            }
-        });
+        messageList.sort(Comparator.comparingLong(Message::getEmissionDate));
 
         return messageList;
     }

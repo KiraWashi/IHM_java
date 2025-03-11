@@ -25,7 +25,7 @@ public class MessageAppLauncher {
 	/**
 	 * Launcher.
 	 *
-	 * @param args
+	 * @param args arg
 	 */
 	public static void main(String[] args) {
 

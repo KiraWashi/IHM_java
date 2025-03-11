@@ -1,8 +1,6 @@
 package main.java.com.ubo.tp.message.ihm.messages.list;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -119,12 +117,7 @@ public class MessageListView extends JPanel implements IMessageListObserver {
             // Icône non trouvée, pas critique
         }
 
-        searchButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                searchMessages();
-            }
-        });
+        searchButton.addActionListener(e -> searchMessages());
 
         searchPanel.add(searchButton, BorderLayout.EAST);
 
@@ -210,12 +203,9 @@ public class MessageListView extends JPanel implements IMessageListObserver {
         messagesPanel.repaint();
 
         // Défilement automatique vers le bas
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                JScrollBar vertical = scrollPane.getVerticalScrollBar();
-                vertical.setValue(vertical.getMaximum());
-            }
+        SwingUtilities.invokeLater(() -> {
+            JScrollBar vertical = scrollPane.getVerticalScrollBar();
+            vertical.setValue(vertical.getMaximum());
         });
     }
 

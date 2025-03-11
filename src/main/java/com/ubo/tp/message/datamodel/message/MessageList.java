@@ -24,7 +24,7 @@ public class MessageList implements IMessage {
     /**
      * Liste des messages.
      */
-    protected List<Message> messages = new ArrayList<>();
+    protected Set<Message> messages = new HashSet<>();
 
     /**
      * Ajoute un message à la liste et notifie les observateurs

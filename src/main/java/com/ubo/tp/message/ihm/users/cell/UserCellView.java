@@ -1,8 +1,6 @@
 package main.java.com.ubo.tp.message.ihm.users.cell;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 
@@ -144,9 +142,9 @@ public class UserCellView extends JPanel implements ISessionObserver {
         followersLabel = new JLabel(followersCount + " followers");
 
         int followingCount = userController.getFollowingCount(user);
-        /**
-         * Label pour le nombre d'utilisateurs suivis
-         */
+
+         //Label pour le nombre d'utilisateurs suivis
+
         JLabel followingLabel = new JLabel(followingCount + " abonnements");
 
         statsPanel.add(followersLabel);
@@ -162,12 +160,7 @@ public class UserCellView extends JPanel implements ISessionObserver {
         followButton = new JButton();
         updateFollowButton();
 
-        followButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                toggleFollow();
-            }
-        });
+        followButton.addActionListener(e -> toggleFollow());
 
         buttonPanel.add(followButton);
         infoPanel.add(buttonPanel);

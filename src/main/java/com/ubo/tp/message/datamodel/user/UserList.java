@@ -1,7 +1,5 @@
 package main.java.com.ubo.tp.message.datamodel.user;
 
-import main.java.com.ubo.tp.message.core.database.IDatabaseObserver;
-import main.java.com.ubo.tp.message.datamodel.message.Message;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,7 +22,7 @@ public class UserList implements IUser {
     /**
      * Liste des messages.
      */
-    protected List<User> users = new ArrayList<>();
+    protected Set<User> users = new HashSet<>();
 
     /**
      * Ajoute un message à la liste et notifie les observateurs

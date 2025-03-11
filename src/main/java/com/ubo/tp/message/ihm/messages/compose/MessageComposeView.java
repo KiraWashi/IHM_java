@@ -1,8 +1,6 @@
 package main.java.com.ubo.tp.message.ihm.messages.compose;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
@@ -181,12 +179,7 @@ public class MessageComposeView extends JPanel implements ISessionObserver {
         sendButton.setForeground(Color.BLACK); // Texte en noir
         sendButton.setFocusPainted(false);
         sendButton.setFont(sendButton.getFont().deriveFont(Font.BOLD));
-        sendButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                sendMessage();
-            }
-        });
+        sendButton.addActionListener(e -> sendMessage());
         bottomPanel.add(sendButton, BorderLayout.EAST);
 
         // Ajout des composants

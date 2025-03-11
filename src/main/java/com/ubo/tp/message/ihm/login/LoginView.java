@@ -4,8 +4,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 
 
@@ -108,30 +106,22 @@ public class LoginView extends JPanel {
         buttonPanel.add(goToRegisterButton);
 
         // Actions des boutons
-        loginButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String errorMessage = loginController.attemptLogin(tagField.getText(), new String(passwordField.getPassword()));
-                if (errorMessage != null) {
-                    JOptionPane.showMessageDialog(LoginView.this,
-                            errorMessage,
-                            "Erreur de connexion",
-                            JOptionPane.ERROR_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(LoginView.this,
-                            "Connexion réussie!",
-                            "Connexion",
-                            JOptionPane.INFORMATION_MESSAGE);
-                }
+        loginButton.addActionListener(e -> {
+            String errorMessage = loginController.attemptLogin(tagField.getText(), new String(passwordField.getPassword()));
+            if (errorMessage != null) {
+                JOptionPane.showMessageDialog(LoginView.this,
+                        errorMessage,
+                        "Erreur de connexion",
+                        JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(LoginView.this,
+                        "Connexion réussie!",
+                        "Connexion",
+                        JOptionPane.INFORMATION_MESSAGE);
             }
         });
 
-        goToRegisterButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                cardLayout.show(contentPanel, REGISTER_CARD);
-            }
-        });
+        goToRegisterButton.addActionListener(e -> cardLayout.show(contentPanel, REGISTER_CARD));
 
         // Layout
         GridBagConstraints gbc = new GridBagConstraints();
@@ -209,62 +199,51 @@ public class LoginView extends JPanel {
         buttonPanel.add(backToLoginButton);
 
         // Actions des boutons
-        avatarButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setFileFilter(new FileNameExtensionFilter("Images", "jpg", "jpeg", "png", "gif"));
+        avatarButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileFilter(new FileNameExtensionFilter("Images", "jpg", "jpeg", "png", "gif"));
 
-                int result = fileChooser.showOpenDialog(panel);
-                if (result == JFileChooser.APPROVE_OPTION) {
-                    File selectedFile = fileChooser.getSelectedFile();
-                    selectedAvatarPath = selectedFile.getAbsolutePath();
-                    avatarPathLabel.setText(selectedFile.getName());
-                }
+            int result = fileChooser.showOpenDialog(panel);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = fileChooser.getSelectedFile();
+                selectedAvatarPath = selectedFile.getAbsolutePath();
+                avatarPathLabel.setText(selectedFile.getName());
             }
         });
 
         // Actions des boutons dans le createRegisterPanel()
-        registerButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String errorMessage = loginController.attemptRegister(
-                        nameField.getText(),
-                        tagField.getText(),
-                        new String(passwordField.getPassword()),
-                        selectedAvatarPath
-                );
+        registerButton.addActionListener(e -> {
+            String errorMessage = loginController.attemptRegister(
+                    nameField.getText(),
+                    tagField.getText(),
+                    new String(passwordField.getPassword()),
+                    selectedAvatarPath
+            );
 
-                if (errorMessage != null) {
-                    JOptionPane.showMessageDialog(LoginView.this,
-                            errorMessage,
-                            "Erreur d'inscription",
-                            JOptionPane.ERROR_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(LoginView.this,
-                            "Inscription réussie! Vous pouvez maintenant vous connecter avec vos identifiants.",
-                            "Inscription",
-                            JOptionPane.INFORMATION_MESSAGE);
+            if (errorMessage != null) {
+                JOptionPane.showMessageDialog(LoginView.this,
+                        errorMessage,
+                        "Erreur d'inscription",
+                        JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(LoginView.this,
+                        "Inscription réussie! Vous pouvez maintenant vous connecter avec vos identifiants.",
+                        "Inscription",
+                        JOptionPane.INFORMATION_MESSAGE);
 
-                    // Réinitialiser les champs du formulaire d'inscription
-                    nameField.setText("");
-                    tagField.setText("");
-                    passwordField.setText("");
-                    selectedAvatarPath = "";
-                    avatarPathLabel.setText("Aucun avatar sélectionné");
+                // Réinitialiser les champs du formulaire d'inscription
+                nameField.setText("");
+                tagField.setText("");
+                passwordField.setText("");
+                selectedAvatarPath = "";
+                avatarPathLabel.setText("Aucun avatar sélectionné");
 
-                    // Retourner à l'écran de connexion
-                    cardLayout.show(contentPanel, LOGIN_CARD);
-                }
-            }
-        });
-
-        backToLoginButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+                // Retourner à l'écran de connexion
                 cardLayout.show(contentPanel, LOGIN_CARD);
             }
         });
+
+        backToLoginButton.addActionListener(e -> cardLayout.show(contentPanel, LOGIN_CARD));
 
         // Layout
         GridBagConstraints gbc = new GridBagConstraints();

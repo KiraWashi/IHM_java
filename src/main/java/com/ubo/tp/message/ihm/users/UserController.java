@@ -1,13 +1,11 @@
 package main.java.com.ubo.tp.message.ihm.users;
 
 import main.java.com.ubo.tp.message.core.EntityManager;
-import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.datamodel.user.IUser;
 import main.java.com.ubo.tp.message.datamodel.user.User;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,7 +25,7 @@ public class UserController {
      */
     private final EntityManager entityManager;
 
-    private IUser userList;
+    private final IUser userList;
 
     /**
      * Constructeur
@@ -56,12 +54,7 @@ public class UserController {
 
 
         // Tri par nom
-        users.sort(new Comparator<User>() {
-            @Override
-            public int compare(User u1, User u2) {
-                return u1.getName().compareToIgnoreCase(u2.getName());
-            }
-        });
+        users.sort((u1, u2) -> u1.getName().compareToIgnoreCase(u2.getName()));
 
         return users;
     }

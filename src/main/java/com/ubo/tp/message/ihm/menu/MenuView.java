@@ -1,8 +1,6 @@
 package main.java.com.ubo.tp.message.ihm.menu;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 
@@ -92,12 +90,7 @@ public class MenuView extends JMenuBar implements ISessionObserver {
         } catch (IOException e) {
             System.err.println("Impossible de charger l'icône de dossier: " + e.getMessage());
         }
-        directoryItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                showDirectoryChooser();
-            }
-        });
+        directoryItem.addActionListener(e -> showDirectoryChooser());
 
         // Élément pour quitter
         JMenuItem exitItem = new JMenuItem("Quitter");
@@ -106,12 +99,7 @@ public class MenuView extends JMenuBar implements ISessionObserver {
         } catch (IOException e) {
             System.err.println("Impossible de charger l'icône de sortie: " + e.getMessage());
         }
-        exitItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                menuController.exit();
-            }
-        });
+        exitItem.addActionListener(e -> menuController.exit());
 
         // Ajout des éléments au menu Fichier
         fileMenu.add(directoryItem);
@@ -129,12 +117,9 @@ public class MenuView extends JMenuBar implements ISessionObserver {
         } catch (IOException e) {
             System.err.println("Impossible de charger l'icône de profil: " + e.getMessage());
         }
-        profileItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (connectedUser != null) {
-                    showUserProfile(connectedUser);
-                }
+        profileItem.addActionListener(e -> {
+            if (connectedUser != null) {
+                showUserProfile(connectedUser);
             }
         });
 
@@ -145,12 +130,7 @@ public class MenuView extends JMenuBar implements ISessionObserver {
         } catch (IOException e) {
             System.err.println("Impossible de charger l'icône de déconnexion: " + e.getMessage());
         }
-        logoutItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                menuController.logout();
-            }
-        });
+        logoutItem.addActionListener(e -> menuController.logout());
 
         // Ajout des éléments au menu Compte
         accountMenu.add(profileItem);
@@ -167,12 +147,7 @@ public class MenuView extends JMenuBar implements ISessionObserver {
         } catch (IOException e) {
             System.err.println("Impossible de charger l'icône d'aide: " + e.getMessage());
         }
-        aboutItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                showAboutDialog();
-            }
-        });
+        aboutItem.addActionListener(e -> showAboutDialog());
 
         // Ajout des éléments au menu Aide
         helpMenu.add(aboutItem);
@@ -203,7 +178,6 @@ public class MenuView extends JMenuBar implements ISessionObserver {
     /**
      * Affiche un sélecteur de répertoire
      *
-     * @return Le fichier sélectionné ou null si aucun répertoire n'a été choisi
      */
     public void showDirectoryChooser() {
         // Création du sélecteur de fichier
@@ -255,12 +229,11 @@ public class MenuView extends JMenuBar implements ISessionObserver {
         int messagesCount = menuController.getUserMessagesCount(user);
 
         // Construction des informations du profil
-        StringBuilder profileInfo = new StringBuilder();
-        profileInfo.append("Nom: ").append(user.getName()).append("\n");
-        profileInfo.append("Tag: @").append(user.getUserTag()).append("\n");
-        profileInfo.append("Abonnements: ").append(followedCount).append("\n");
-        profileInfo.append("Followers: ").append(followersCount).append("\n");
-        profileInfo.append("Messages: ").append(messagesCount);
+        String profileInfo = "Nom: " + user.getName() + "\n" +
+                "Tag: @" + user.getUserTag() + "\n" +
+                "Abonnements: " + followedCount + "\n" +
+                "Followers: " + followersCount + "\n" +
+                "Messages: " + messagesCount;
 
         // Création de l'icône à partir de l'avatar de l'utilisateur ou utilisation du logo par défaut
         ImageIcon profileIcon = defaultLogo;
@@ -275,7 +248,7 @@ public class MenuView extends JMenuBar implements ISessionObserver {
         // Affichage de la boîte de dialogue avec les informations du profil
         JOptionPane.showMessageDialog(
                 parentComponent,
-                profileInfo.toString(),
+                profileInfo,
                 "Profil de " + user.getName(),
                 JOptionPane.INFORMATION_MESSAGE,
                 profileIcon

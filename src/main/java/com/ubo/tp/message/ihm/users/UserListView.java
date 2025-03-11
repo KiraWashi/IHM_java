@@ -1,8 +1,6 @@
 package main.java.com.ubo.tp.message.ihm.users;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 
 import javax.swing.*;
@@ -46,8 +44,6 @@ public class UserListView extends JPanel implements IUserListObserver {
      */
     private JScrollPane scrollPane;
 
-    private IUser userList;
-
     /**
      * Constructeur
      *
@@ -57,7 +53,6 @@ public class UserListView extends JPanel implements IUserListObserver {
     public UserListView(UserController userController, ISession session, IUser user) {
         this.userController = userController;
         this.session = session;
-        this.userList = user;
         user.addObserver(this);
 
         // Initialisation de l'interface
@@ -101,12 +96,7 @@ public class UserListView extends JPanel implements IUserListObserver {
 
         // Bouton de recherche
         JButton searchButton = new JButton("Rechercher");
-        searchButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                searchUsers();
-            }
-        });
+        searchButton.addActionListener(e -> searchUsers());
 
         searchPanel.add(searchButton, BorderLayout.EAST);
 
@@ -195,12 +185,7 @@ public class UserListView extends JPanel implements IUserListObserver {
         usersPanel.repaint();
 
         // Restaurer la position du scroll
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                scrollPane.getVerticalScrollBar().setValue(verticalScrollValue);
-            }
-        });
+        SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar().setValue(verticalScrollValue));
     }
 
     // Implémentation des méthodes de l'interface ISessionObserver

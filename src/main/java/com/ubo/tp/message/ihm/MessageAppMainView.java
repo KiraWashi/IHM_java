@@ -74,30 +74,23 @@ public class MessageAppMainView extends JFrame{
      * Ferme l'application après confirmation
      */
     public int closeApp() {
-        int response = JOptionPane.showConfirmDialog(
+        return JOptionPane.showConfirmDialog(
                 this,
                 "Voulez-vous vraiment quitter l'application ?",
                 "Confirmer la fermeture",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE
         );
-
-        return response;
     }
 
     /**
      * Méthode permettant de rendre la fenêtre visible ou invisible.
      *
-     * @param visible
+     * @param visible boolean pour informer de la visibilité que l'on veut
      */
     @Override
     public void setVisible(boolean visible) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                MessageAppMainView.super.setVisible(visible);
-            }
-        });
+        SwingUtilities.invokeLater(() -> MessageAppMainView.super.setVisible(visible));
     }
 
     // Implémentation des méthodes de l'interface ISessionObserver
