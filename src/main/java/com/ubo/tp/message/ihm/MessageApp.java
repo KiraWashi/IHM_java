@@ -11,7 +11,7 @@ import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.database.IDatabaseObserver;
 import main.java.com.ubo.tp.message.core.directory.IWatchableDirectory;
 import main.java.com.ubo.tp.message.core.directory.WatchableDirectory;
-import main.java.com.ubo.tp.message.core.notification.NotificationController;
+
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.core.session.Session;
@@ -19,7 +19,7 @@ import main.java.com.ubo.tp.message.datamodel.message.IMessage;
 import main.java.com.ubo.tp.message.datamodel.user.IUser;
 import main.java.com.ubo.tp.message.datamodel.user.User;
 import main.java.com.ubo.tp.message.datamodel.message.Message;
-import main.java.com.ubo.tp.message.datamodel.User;
+
 import main.java.com.ubo.tp.message.datamodel.message.MessageList;
 import main.java.com.ubo.tp.message.datamodel.notification.INotification;
 import main.java.com.ubo.tp.message.datamodel.notification.NotificationList;
@@ -31,6 +31,7 @@ import main.java.com.ubo.tp.message.ihm.messages.compose.MessageComposeControlle
 import main.java.com.ubo.tp.message.ihm.messages.compose.MessageComposeView;
 import main.java.com.ubo.tp.message.ihm.messages.list.MessageListController;
 import main.java.com.ubo.tp.message.ihm.messages.list.MessageListView;
+import main.java.com.ubo.tp.message.ihm.notifications.NotificationController;
 import main.java.com.ubo.tp.message.ihm.notifications.NotificationView;
 import main.java.com.ubo.tp.message.ihm.users.UserController;
 import main.java.com.ubo.tp.message.ihm.users.UserListView;
@@ -146,7 +147,6 @@ public class MessageApp implements ISessionObserver, Actions {
 		this.mEntityManager = entityManager;
 		this.mSession = new Session();
 		this.mSession.addObserver(this);
-		this.mDatabase.addObserver(this);
 		this.mMessageList = new MessageList();
 		this.mNotificationList = new NotificationList();
 		this.mMessageList = message;
@@ -220,7 +220,7 @@ public class MessageApp implements ISessionObserver, Actions {
 
 		this.messageComposeView = new MessageComposeView(this.mMessageComposeController, this.mSession);
 		this.messageListView = new MessageListView(this.mMessageListController, this.mSession, this.mMessageList);
-		this.userListView = new UserListView(this.mUserController, this.mSession);
+		this.userListView = new UserListView(this.mUserController, this.mSession, this.mUserList);
 		this.notificationView = new NotificationView(this.mNotificationController);
 	}
 
