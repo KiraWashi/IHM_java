@@ -13,8 +13,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
 import main.java.com.ubo.tp.message.core.session.ISession;
-import main.java.com.ubo.tp.message.datamodel.Message;
-import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.datamodel.message.Message;
+import main.java.com.ubo.tp.message.datamodel.user.User;
 
 /**
  * Composant représentant une cellule de message dans la liste
@@ -24,17 +24,17 @@ public class MessageCellView extends JPanel {
     /**
      * Message à afficher
      */
-    private Message message;
+    private final Message message;
 
     /**
      * Format de date
      */
-    private SimpleDateFormat dateFormat;
+    private final SimpleDateFormat dateFormat;
 
     /**
      * Session active
      */
-    private ISession session;
+    private final ISession session;
 
     /**
      * Constructeur
@@ -62,32 +62,25 @@ public class MessageCellView extends JPanel {
 
         // Vérifier si le message est de l'utilisateur connecté
         User connectedUser = session.getConnectedUser();
-        boolean isCurrentUserMessage = connectedUser != null &&
-                message.getSender().equals(connectedUser);
+        boolean isCurrentUserMessage = message.getSender().equals(connectedUser);
 
         // Configuration du layout en fonction de l'émetteur du message
         this.setLayout(new BorderLayout(10, 5));
         this.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
 
+        this.setBorder(new CompoundBorder(
+                new EmptyBorder(5, 2, 5, 2),
+                new CompoundBorder(
+                        new LineBorder(new Color(200, 230, 200), 1, true), // Couleur légèrement verte
+                        new EmptyBorder(10, 10, 10, 10)
+                )
+        ));
+
         if (isCurrentUserMessage) {
             // Message de l'utilisateur connecté
-            this.setBorder(new CompoundBorder(
-                    new EmptyBorder(5, 2, 5, 2),
-                    new CompoundBorder(
-                            new LineBorder(new Color(200, 230, 200), 1, true), // Couleur légèrement verte
-                            new EmptyBorder(10, 10, 10, 10)
-                    )
-            ));
             this.setBackground(new Color(240, 255, 240)); // Vert très clair
         } else {
             // Message des autres utilisateurs
-            this.setBorder(new CompoundBorder(
-                    new EmptyBorder(5, 2, 5, 2),
-                    new CompoundBorder(
-                            new LineBorder(new Color(200, 230, 200), 1, true), // Couleur légèrement verte
-                            new EmptyBorder(10, 10, 10, 10)
-                    )
-            ));
             this.setBackground(Color.WHITE);
         }
 
@@ -135,7 +128,7 @@ public class MessageCellView extends JPanel {
         headerPanel.setOpaque(false);
 
         // Nom et tag de l'expéditeur
-        JPanel userPanel = new JPanel(new FlowLayout(isCurrentUserMessage ? FlowLayout.LEFT : FlowLayout.LEFT, 5, 0));
+        JPanel userPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         userPanel.setOpaque(false);
 
         JLabel nameLabel = new JLabel(sender.getName());
@@ -155,7 +148,7 @@ public class MessageCellView extends JPanel {
         dateLabel.setForeground(new Color(100, 100, 100));
 
         // Alignement de la date en fonction de l'émetteur
-        JPanel datePanel = new JPanel(new FlowLayout(isCurrentUserMessage ? FlowLayout.RIGHT : FlowLayout.RIGHT, 5, 0));
+        JPanel datePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
         datePanel.setOpaque(false);
         datePanel.add(dateLabel);
         headerPanel.add(datePanel, BorderLayout.EAST);
@@ -183,16 +176,9 @@ public class MessageCellView extends JPanel {
         } else {
             contentPanel.add(textArea);
         }
-
         // Positionnement de l'avatar et du contenu
-        if (isCurrentUserMessage) {
-            // Pour les messages de l'utilisateur connecté
-            this.add(avatarPanel, BorderLayout.WEST);
-            this.add(contentPanel, BorderLayout.CENTER);
-        } else {
-            // Pour les messages des autres utilisateurs
-            this.add(avatarPanel, BorderLayout.WEST);
-            this.add(contentPanel, BorderLayout.CENTER);
-        }
+        this.add(avatarPanel, BorderLayout.WEST);
+        this.add(contentPanel, BorderLayout.CENTER);
+
     }
 }

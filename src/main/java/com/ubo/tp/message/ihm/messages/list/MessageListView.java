@@ -1,12 +1,9 @@
 package main.java.com.ubo.tp.message.ihm.messages.list;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -15,18 +12,16 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import main.java.com.ubo.tp.message.core.database.IDatabaseObserver;
 import main.java.com.ubo.tp.message.core.session.ISession;
-import main.java.com.ubo.tp.message.core.session.ISessionObserver;
-import main.java.com.ubo.tp.message.datamodel.Message;
-import main.java.com.ubo.tp.message.datamodel.User;
-import main.java.com.ubo.tp.message.ihm.messages.list.MessageListController;
+import main.java.com.ubo.tp.message.datamodel.message.Message;
+import main.java.com.ubo.tp.message.datamodel.message.IMessage;
+import main.java.com.ubo.tp.message.datamodel.message.IMessageListObserver;
 import main.java.com.ubo.tp.message.ihm.messages.list.cell.MessageCellView;
 
 /**
  * Composant d'affichage de la liste des messages
  */
-public class MessageListView extends JPanel implements IDatabaseObserver, ISessionObserver {
+public class MessageListView extends JPanel implements IMessageListObserver {
 
     /**
      * Chemin vers les icônes
@@ -36,12 +31,12 @@ public class MessageListView extends JPanel implements IDatabaseObserver, ISessi
     /**
      * Contrôleur de liste de messages
      */
-    private MessageListController messageListController;
+    private final MessageListController messageListController;
 
     /**
      * Session active
      */
-    private ISession session;
+    private final ISession session;
 
     /**
      * Panneau contenant la liste des messages
@@ -54,11 +49,6 @@ public class MessageListView extends JPanel implements IDatabaseObserver, ISessi
     private JTextField searchField;
 
     /**
-     * Bouton de recherche
-     */
-    private JButton searchButton;
-
-    /**
      * Scroll pane pour la liste des messages
      */
     private JScrollPane scrollPane;
@@ -66,7 +56,7 @@ public class MessageListView extends JPanel implements IDatabaseObserver, ISessi
     /**
      * Format de date pour l'affichage
      */
-    private SimpleDateFormat dateFormat;
+    private final SimpleDateFormat dateFormat;
 
     /**
      * Constructeur
@@ -74,13 +64,11 @@ public class MessageListView extends JPanel implements IDatabaseObserver, ISessi
      * @param messageListController Contrôleur de liste de messages
      * @param session Session active
      */
-    public MessageListView(MessageListController messageListController, ISession session) {
+    public MessageListView(MessageListController messageListController, ISession session, IMessage message) {
         this.messageListController = messageListController;
         this.session = session;
         this.dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-
-        // S'abonner aux notifications de session
-        this.session.addObserver(this);
+        message.addObserver(this);
 
         // Initialisation de l'interface
         this.initUI();
@@ -122,19 +110,14 @@ public class MessageListView extends JPanel implements IDatabaseObserver, ISessi
         searchPanel.add(searchField, BorderLayout.CENTER);
 
         // Bouton de recherche
-        searchButton = new JButton("Rechercher");
+        JButton searchButton = new JButton("Rechercher");
         try {
             searchButton.setIcon(new ImageIcon(ImageIO.read(new File(ICON_PATH + "searchIcon_20.png"))));
         } catch (IOException e) {
             // Icône non trouvée, pas critique
         }
 
-        searchButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                searchMessages();
-            }
-        });
+        searchButton.addActionListener(e -> searchMessages());
 
         searchPanel.add(searchButton, BorderLayout.EAST);
 
@@ -220,16 +203,11 @@ public class MessageListView extends JPanel implements IDatabaseObserver, ISessi
         messagesPanel.repaint();
 
         // Défilement automatique vers le bas
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                JScrollBar vertical = scrollPane.getVerticalScrollBar();
-                vertical.setValue(vertical.getMaximum());
-            }
+        SwingUtilities.invokeLater(() -> {
+            JScrollBar vertical = scrollPane.getVerticalScrollBar();
+            vertical.setValue(vertical.getMaximum());
         });
     }
-
-    // Implémentation des méthodes de l'interface IDatabaseObserver
 
     @Override
     public void notifyMessageAdded(Message addedMessage) {
@@ -242,34 +220,14 @@ public class MessageListView extends JPanel implements IDatabaseObserver, ISessi
     }
 
     @Override
+    public void notifyRefreshMessage() {
+        refreshMessages();
+    }
+
+    @Override
     public void notifyMessageModified(Message modifiedMessage) {
         refreshMessages();
     }
 
-    @Override
-    public void notifyUserAdded(User addedUser) {
-        // Non utilisé pour ce composant
-    }
 
-    @Override
-    public void notifyUserDeleted(User deletedUser) {
-        // Non utilisé pour ce composant
-    }
-
-    @Override
-    public void notifyUserModified(User modifiedUser) {
-        // Non utilisé pour ce composant
-    }
-
-    // Implémentation des méthodes de l'interface ISessionObserver
-
-    @Override
-    public void notifyLogin(User connectedUser) {
-        refreshMessages();
-    }
-
-    @Override
-    public void notifyLogout() {
-        refreshMessages();
-    }
 }

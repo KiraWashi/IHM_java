@@ -1,8 +1,6 @@
 package main.java.com.ubo.tp.message.ihm.users.cell;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 
@@ -14,7 +12,7 @@ import javax.swing.border.LineBorder;
 
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
-import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.datamodel.user.User;
 import main.java.com.ubo.tp.message.ihm.users.UserController;
 
 /**
@@ -25,17 +23,17 @@ public class UserCellView extends JPanel implements ISessionObserver {
     /**
      * Utilisateur à afficher
      */
-    private User user;
+    private final User user;
 
     /**
      * Contrôleur d'utilisateurs
      */
-    private UserController userController;
+    private final UserController userController;
 
     /**
      * Session active
      */
-    private ISession session;
+    private final ISession session;
 
     /**
      * Bouton pour suivre/ne plus suivre
@@ -46,11 +44,6 @@ public class UserCellView extends JPanel implements ISessionObserver {
      * Label pour le nombre de followers
      */
     private JLabel followersLabel;
-
-    /**
-     * Label pour le nombre d'utilisateurs suivis
-     */
-    private JLabel followingLabel;
 
     /**
      * Constructeur
@@ -149,7 +142,10 @@ public class UserCellView extends JPanel implements ISessionObserver {
         followersLabel = new JLabel(followersCount + " followers");
 
         int followingCount = userController.getFollowingCount(user);
-        followingLabel = new JLabel(followingCount + " abonnements");
+
+         //Label pour le nombre d'utilisateurs suivis
+
+        JLabel followingLabel = new JLabel(followingCount + " abonnements");
 
         statsPanel.add(followersLabel);
         statsPanel.add(followingLabel);
@@ -164,12 +160,7 @@ public class UserCellView extends JPanel implements ISessionObserver {
         followButton = new JButton();
         updateFollowButton();
 
-        followButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                toggleFollow();
-            }
-        });
+        followButton.addActionListener(e -> toggleFollow());
 
         buttonPanel.add(followButton);
         infoPanel.add(buttonPanel);

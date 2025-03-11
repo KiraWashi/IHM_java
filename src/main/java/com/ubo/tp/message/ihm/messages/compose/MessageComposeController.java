@@ -1,30 +1,27 @@
 package main.java.com.ubo.tp.message.ihm.messages.compose;
 
 import main.java.com.ubo.tp.message.core.EntityManager;
-import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.session.ISession;
-import main.java.com.ubo.tp.message.datamodel.Message;
-import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.datamodel.message.IMessage;
+import main.java.com.ubo.tp.message.datamodel.message.Message;
+import main.java.com.ubo.tp.message.datamodel.user.User;
 
 /**
  * Contrôleur pour la composition et l'envoi de messages
  */
 public class MessageComposeController {
 
-    /**
-     * Base de données de l'application
-     */
-    private IDatabase database;
+    private final IMessage messageList;
 
     /**
      * Gestionnaire d'entités
      */
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
     /**
      * Session active
      */
-    private ISession session;
+    private final ISession session;
 
     /**
      * Limite de caractères pour un message
@@ -34,14 +31,13 @@ public class MessageComposeController {
     /**
      * Constructeur
      *
-     * @param database Base de données
      * @param entityManager Gestionnaire d'entités
      * @param session Session active
      */
-    public MessageComposeController(IDatabase database, EntityManager entityManager, ISession session) {
-        this.database = database;
+    public MessageComposeController(EntityManager entityManager, ISession session, IMessage message) {
         this.entityManager = entityManager;
         this.session = session;
+        this.messageList = message;
     }
 
     /**
@@ -71,8 +67,8 @@ public class MessageComposeController {
             // Création du message
             Message newMessage = new Message(currentUser, messageText);
 
-            // Ajout du message à la base de données
-            database.addMessage(newMessage);
+            // Ajout du message à la base de donnée
+            messageList.addMessage(newMessage);
 
             // Génération du fichier message
             entityManager.writeMessageFile(newMessage);

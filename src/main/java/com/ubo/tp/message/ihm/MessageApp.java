@@ -8,17 +8,34 @@ import main.java.com.ubo.tp.message.common.Constants;
 import main.java.com.ubo.tp.message.common.PropertiesManager;
 import main.java.com.ubo.tp.message.core.EntityManager;
 import main.java.com.ubo.tp.message.core.database.IDatabase;
+import main.java.com.ubo.tp.message.core.database.IDatabaseObserver;
 import main.java.com.ubo.tp.message.core.directory.IWatchableDirectory;
 import main.java.com.ubo.tp.message.core.directory.WatchableDirectory;
-import main.java.com.ubo.tp.message.core.notification.NotificationController;
+
 import main.java.com.ubo.tp.message.core.session.ISession;
+import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.core.session.Session;
+import main.java.com.ubo.tp.message.datamodel.message.IMessage;
+import main.java.com.ubo.tp.message.datamodel.user.IUser;
+import main.java.com.ubo.tp.message.datamodel.user.User;
+import main.java.com.ubo.tp.message.datamodel.message.Message;
+
+import main.java.com.ubo.tp.message.datamodel.message.MessageList;
+import main.java.com.ubo.tp.message.datamodel.notification.INotification;
+import main.java.com.ubo.tp.message.datamodel.notification.NotificationList;
 import main.java.com.ubo.tp.message.ihm.login.LoginController;
 import main.java.com.ubo.tp.message.ihm.login.LoginView;
 import main.java.com.ubo.tp.message.ihm.menu.MenuController;
-import main.java.com.ubo.tp.message.ihm.menu.about.AboutController;
-import main.java.com.ubo.tp.message.ihm.menu.directoryChoose.DirectoryController;
-import main.java.com.ubo.tp.message.ihm.menu.profile.ProfileController;
+import main.java.com.ubo.tp.message.ihm.menu.MenuView;
+import main.java.com.ubo.tp.message.ihm.messages.compose.MessageComposeController;
+import main.java.com.ubo.tp.message.ihm.messages.compose.MessageComposeView;
+import main.java.com.ubo.tp.message.ihm.messages.list.MessageListController;
+import main.java.com.ubo.tp.message.ihm.messages.list.MessageListView;
+import main.java.com.ubo.tp.message.ihm.notifications.NotificationController;
+import main.java.com.ubo.tp.message.ihm.notifications.NotificationView;
+import main.java.com.ubo.tp.message.ihm.users.UserController;
+import main.java.com.ubo.tp.message.ihm.users.UserListView;
+
 import javax.swing.UIManager;
 
 
@@ -27,11 +44,20 @@ import javax.swing.UIManager;
  *
  * @author S.Lucas
  */
-public class MessageApp {
+public class MessageApp implements ISessionObserver, Actions {
 	/**
 	 * Base de données.
 	 */
 	protected IDatabase mDatabase;
+
+	protected IMessage mMessageList;
+
+	protected IUser mUserList;
+
+	/**
+	 * Liste des notifications
+	 */
+	protected INotification mNotificationList;
 
 	/**
 	 * Gestionnaire des entités contenu de la base de données.
@@ -49,21 +75,6 @@ public class MessageApp {
 	protected ISession mSession;
 
 	/**
-	 * Contrôleur de profil.
-	 */
-	protected ProfileController mProfileController;
-
-	/**
-	 * Contrôleur de répertoire.
-	 */
-	protected DirectoryController mDirectoryController;
-
-	/**
-	 * Contrôleur "À propos".
-	 */
-	protected AboutController mAboutController;
-
-	/**
 	 * Contrôleur du menu.
 	 */
 	protected MenuController mMenuController;
@@ -72,6 +83,21 @@ public class MessageApp {
 	 * Contrôleur de login.
 	 */
 	protected LoginController mLoginController;
+
+	/**
+	 * Contrôleur de MessageCompose.
+	 */
+	protected MessageComposeController mMessageComposeController;
+
+	/**
+	 * Contrôleur de MessageCompose.
+	 */
+	protected UserController mUserController;
+
+	/**
+	 * Contrôleur de MessageCompose.
+	 */
+	protected MessageListController mMessageListController;
 
 	/**
 	 * Vue de login.
@@ -84,6 +110,11 @@ public class MessageApp {
 	protected MainContentView mMainContentView;
 
 	/**
+	 * Vue du contenu principal après connexion.
+	 */
+	protected MenuView mMenuView;
+
+	/**
 	 * Classe de surveillance de répertoire
 	 */
 	protected IWatchableDirectory mWatchableDirectory;
@@ -94,29 +125,32 @@ public class MessageApp {
 	protected String mExchangeDirectoryPath;
 
 	/**
-	 * Nom de la classe de l'UI.
-	 */
-	protected String mUiClassName;
-
-
-	/**
 	 * Controller pour les notifications
 	 */
 	protected NotificationController mNotificationController;
 
+	protected MessageComposeView messageComposeView;
+
+	protected MessageListView messageListView;
+
+	protected UserListView userListView;
+
+	protected NotificationView notificationView;
+
+
 	/**
 	 * Constructeur.
 	 *
-	 * @param entityManager
-	 * @param database
 	 */
-	public MessageApp(IDatabase database, EntityManager entityManager) {
+	public MessageApp(IDatabase database, IMessage message, IUser user, EntityManager entityManager) {
 		this.mDatabase = database;
 		this.mEntityManager = entityManager;
-
-		// Création de la session
 		this.mSession = new Session();
-
+		this.mSession.addObserver(this);
+		this.mMessageList = new MessageList();
+		this.mNotificationList = new NotificationList();
+		this.mMessageList = message;
+		this.mUserList = user;
 	}
 
 	/**
@@ -126,25 +160,16 @@ public class MessageApp {
 		// Init du look and feel de l'application
 		this.initLookAndFeel();
 
-		// Initialisation des contrôleurs
-		this.initControllers();
+		// Initialisation du contrôleur de notification
+		this.initController();
+
+		this.initView();
 
 		// Initialisation de l'IHM
 		this.initGui();
 
 		// Initialisation du répertoire d'échange
 		this.initDirectory();
-	}
-
-	/**
-	 * Initialisation des contrôleurs.
-	 */
-	protected void initControllers() {
-		// Création des contrôleurs pour les différentes parties de l'application
-		this.mDirectoryController = new DirectoryController(this);
-		this.mAboutController = new AboutController();
-		this.mProfileController = new ProfileController(this.mDatabase);
-		this.mNotificationController = new NotificationController(this.mDatabase, this.mSession, null);
 	}
 
 	/**
@@ -159,42 +184,60 @@ public class MessageApp {
 		}
 	}
 
+	protected void initController(){
+		// Initialisation des contrôleurs qui nécessitent la vue principale
+		this.mLoginController = new LoginController(this.mEntityManager, this.mSession, this.mUserList);
+
+		this.mUserController = new UserController(this.mSession, this.mEntityManager, this.mUserList);
+
+		this.mMessageComposeController = new MessageComposeController(this.mEntityManager, this.mSession, this.mMessageList);
+
+		this.mNotificationController = new NotificationController(this.mDatabase, this.mSession, null);
+
+		this.mMessageListController = new MessageListController(this.mSession, this.mMessageList, this.mUserList);
+		// Création du contrôleur du menu
+		this.mMenuController = new MenuController(this.mSession, this.mMessageList, mUserList, this);
+	}
+
+	protected void initView(){
+		// Création de la vue principale
+		this.mMainView = new MessageAppMainView();
+		// Création de la vue de login
+		this.mLoginView = new LoginView(this.mLoginController);
+
+		this.messageListView = new MessageListView(this.mMessageListController, this.mSession, this.mMessageList);
+
+		this.messageComposeView = new MessageComposeView(this.mMessageComposeController, this.mSession);
+
+		this.userListView = new UserListView(this.mUserController, this.mSession, this.mUserList);
+
+		this.notificationView = new NotificationView(this.mNotificationController);
+
+		// Création de la vue de contenu principal
+		this.mMainContentView = new MainContentView(this.mSession, this.mNotificationController, this.messageListView, this.messageComposeView, this.userListView, this.notificationView);
+
+		this.mMenuView = new MenuView(this.mMenuController, this.mSession);
+
+		this.messageComposeView = new MessageComposeView(this.mMessageComposeController, this.mSession);
+		this.messageListView = new MessageListView(this.mMessageListController, this.mSession, this.mMessageList);
+		this.userListView = new UserListView(this.mUserController, this.mSession, this.mUserList);
+		this.notificationView = new NotificationView(this.mNotificationController);
+	}
+
 	/**
 	 * Initialisation de l'interface graphique.
 	 */
 	protected void initGui() {
-		// Création de la vue principale
-		this.mMainView = new MessageAppMainView(this);
 
-		// Initialisation des contrôleurs qui nécessitent la vue principale
-		this.mLoginController = new LoginController(this.mMainView, this.mDatabase, this.mEntityManager, this.mSession);
-		this.mMenuController = new MenuController(
-				this.mMainView,
-				this.mSession,
-				this.mProfileController,
-				this.mDirectoryController,
-				this.mAboutController
-		);
+		// Définir la fenêtre parente pour les dialogues
+		mMenuView.setParentComponent(this.mMainView);
+		this.mMainView.setJMenuBar(mMenuView);
 
-		// Création de la vue de login
-		this.mLoginView = new LoginView(this.mLoginController);
-
-		// Création de la vue de contenu principal
-		this.mMainContentView = new MainContentView(this.mDatabase, this.mSession, this.mEntityManager, this);
 		this.mDatabase.addObserver(this.mNotificationController);
-
-		// Configuration du menu de l'application
-		this.mMainView.setJMenuBar(this.mMenuController.getMenuView());
-
-		// Configuration de la vue de login et du contrôleur
-		this.mLoginController.setMainContentView(this.mMainContentView);
 
 		// Ajout de la vue de login au contentPane
 		Container contentPane = this.mMainView.getContentPane();
 		contentPane.add(this.mLoginView, BorderLayout.CENTER);
-
-		// Initialisation du contrôleur de login
-		this.mLoginController.init();
 
 		// Initialisation du contrôleur de menu
 		this.mMenuController.init();
@@ -220,7 +263,7 @@ public class MessageApp {
 			String savedPath = config.getProperty(Constants.CONFIGURATION_KEY_EXCHANGE_DIRECTORY);
 
 			// Vérifier si le chemin est valide
-			if (savedPath != null && isValideExchangeDirectory(new File(savedPath))) {
+			if (savedPath != null && mMenuController.isValidExchangeDirectory(new File(savedPath))) {
 				initDirectory(savedPath);
 				return;
 			}
@@ -230,7 +273,7 @@ public class MessageApp {
 		File file = this.mMainView.showDirectoryChooser();
 
 		// Initialiser avec le répertoire sélectionné
-		if (file != null && isValideExchangeDirectory(file)) {
+		if (file != null && mMenuController.isValidExchangeDirectory(file)) {
 			initDirectory(file.getAbsolutePath());
 
 			// Sauvegarder le chemin dans la configuration
@@ -242,39 +285,31 @@ public class MessageApp {
 		}
 	}
 
+
+
+	@Override
+	public void logout(){
+		if (this.mSession.getConnectedUser() != null) {
+			this.mSession.disconnect();
+		}
+	}
+
 	/**
-	 * Ferme proprement l'application
+	 * Exit
 	 */
-	public void close() {
+	public void exit() {
 		// Arrêter la surveillance du répertoire si active
 		if (mWatchableDirectory != null) {
 			mWatchableDirectory.stopWatching();
 		}
-
-		// Fermer la vue
-		if (mMainView != null) {
-			mMainView.dispose();
-		}
-
 		// Quitter l'application
 		System.exit(0);
 	}
 
 	/**
-	 * Indique si le fichier donné est valide pour servir de répertoire d'échange
-	 *
-	 * @param directory , Répertoire à tester.
-	 */
-	protected boolean isValideExchangeDirectory(File directory) {
-		// Valide si répertoire disponible en lecture et écriture
-		return directory != null && directory.exists() && directory.isDirectory() && directory.canRead()
-				&& directory.canWrite();
-	}
-
-	/**
 	 * Initialisation du répertoire d'échange.
 	 *
-	 * @param directoryPath
+	 * @param directoryPath chemain absolue pour le dossier
 	 */
 	protected void initDirectory(String directoryPath) {
 		mExchangeDirectoryPath = directoryPath;
@@ -289,6 +324,16 @@ public class MessageApp {
 		mWatchableDirectory.addObserver(mEntityManager);
 	}
 
+	@Override
+	public void exitApplication() {
+		// Fermer la vue
+		if (mMainView != null) {
+			if(mMainView.closeApp() == 0){
+				this.exit();
+			}
+		}
+	}
+
 	/**
 	 * Change le répertoire d'échange
 	 *
@@ -296,7 +341,7 @@ public class MessageApp {
 	 */
 	public void changeDirectory(String directoryPath) {
 		File file = new File(directoryPath);
-		if (isValideExchangeDirectory(file)) {
+		if (mMenuController.isValidExchangeDirectory(file)) {
 			// Arrêter la surveillance actuelle
 			if (mWatchableDirectory != null) {
 				mWatchableDirectory.stopWatching();
@@ -325,30 +370,43 @@ public class MessageApp {
 	}
 
 	/**
-	 * Retourne la base de données
+	 * Affiche la vue principale
 	 */
-	public IDatabase getDatabase() {
-		return mDatabase;
+	private void showMainContent() {
+		// Récupère le contentPane
+		Container contentPane = this.mMainView.getContentPane();
+
+		// Vide le contentPane
+		contentPane.removeAll();
+
+		// Ajoute la vue principale
+		contentPane.add(mMainContentView, BorderLayout.CENTER);
+
+		// Rafraîchit la vue
+		contentPane.revalidate();
+		contentPane.repaint();
 	}
 
-	/**
-	 * Retourne le gestionnaire d'entités
-	 */
-	public EntityManager getEntityManager() {
-		return mEntityManager;
+
+	@Override
+	public void notifyLogin(User connectedUser) {
+		this.mMessageList.refreshMessage();
+		this.mUserList.refreshUser();
+		this.mMainContentView.updateUIState();
+		this.mMainView.login(connectedUser);
+		this.showMainContent();
 	}
 
-	/**
-	 * Retourne la session de l'application
-	 */
-	public ISession getSession() {
-		return mSession;
+	@Override
+	public void notifyLogout() {
+		Container contentPane = this.mMainView.getContentPane();
+		contentPane.removeAll();
+		contentPane.add(new LoginView(this.mLoginController), BorderLayout.CENTER);
+		contentPane.revalidate();
+		contentPane.repaint();
+		this.mMainView.logout();
+		this.mMainContentView.updateUIState();
 	}
 
-	/**
-	 * Retourne le controller de notifications
-	 */
-	public NotificationController getNotificationController() {
-		return this.mNotificationController;
-	}
+
 }

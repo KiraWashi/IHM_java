@@ -1,4 +1,8 @@
-package main.java.com.ubo.tp.message.datamodel;
+package main.java.com.ubo.tp.message.datamodel.notification;
+
+
+import main.java.com.ubo.tp.message.datamodel.message.Message;
+import main.java.com.ubo.tp.message.datamodel.user.User;
 
 import java.util.Date;
 
@@ -22,7 +26,7 @@ public class Notification {
         this.message = message;
         this.sender = sender;
         this.read = false;
-        this.creationDate = new Date();
+        this.creationDate = new Date(message.getEmissionDate());
     }
 
     public Message getMessage() {

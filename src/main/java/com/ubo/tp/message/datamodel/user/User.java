@@ -1,4 +1,4 @@
-package main.java.com.ubo.tp.message.datamodel;
+package main.java.com.ubo.tp.message.datamodel.user;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -154,19 +154,6 @@ public class User {
 		return this.getFollows().contains(userToCheck.getUserTag());
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-//	-> A activer... pourquoi ?
-//	public int hashCode() {
-//		int hashCode = 0;
-//
-//		if (this.mUuid != null) {
-//			hashCode = this.mUuid.hashCode();
-//		}
-//
-//		return hashCode;
-//	}
 
 	@Override
 	public boolean equals(Object other) {
