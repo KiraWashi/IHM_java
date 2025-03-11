@@ -7,15 +7,10 @@ import javax.swing.event.ChangeListener;
 
 import main.java.com.ubo.tp.message.core.notification.NotificationController;
 import main.java.com.ubo.tp.message.core.session.ISession;
-import main.java.com.ubo.tp.message.core.session.ISessionObserver;
-import main.java.com.ubo.tp.message.datamodel.User;
-import main.java.com.ubo.tp.message.ihm.messages.compose.MessageComposeController;
 import main.java.com.ubo.tp.message.ihm.messages.compose.MessageComposeView;
-import main.java.com.ubo.tp.message.ihm.messages.list.MessageListController;
 import main.java.com.ubo.tp.message.ihm.messages.list.MessageListView;
 import main.java.com.ubo.tp.message.ihm.notifications.NotificationButton;
 import main.java.com.ubo.tp.message.ihm.notifications.NotificationView;
-import main.java.com.ubo.tp.message.ihm.users.UserController;
 import main.java.com.ubo.tp.message.ihm.users.UserListView;
 
 /**

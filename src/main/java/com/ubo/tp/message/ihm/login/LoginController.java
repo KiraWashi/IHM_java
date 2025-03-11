@@ -3,8 +3,8 @@ package main.java.com.ubo.tp.message.ihm.login;
 import main.java.com.ubo.tp.message.core.EntityManager;
 import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.session.ISession;
-import main.java.com.ubo.tp.message.core.session.ISessionObserver;
-import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.datamodel.user.IUser;
+import main.java.com.ubo.tp.message.datamodel.user.User;
 
 import java.util.HashSet;
 import java.util.UUID;
@@ -16,32 +16,28 @@ import java.util.UUID;
  */
 public class LoginController {
 
-    /**
-     * Base de données de l'application
-     */
-    private IDatabase database;
+    private final IUser userList;
 
     /**
      * Gestionnaire d'entités
      */
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
     /**
      * Session
      */
-    private ISession session;
+    private final ISession session;
 
     /**
      * Constructeur
      *
-     * @param database Base de données
      * @param entityManager Gestionnaire d'entités
      * @param session Session de l'application
      */
-    public LoginController(IDatabase database, EntityManager entityManager, ISession session) {
-        this.database = database;
+    public LoginController(EntityManager entityManager, ISession session, IUser user) {
         this.entityManager = entityManager;
         this.session = session;
+        this.userList = user;
     }
 
     /**
@@ -58,7 +54,7 @@ public class LoginController {
 
         // Recherche de l'utilisateur dans la base de données par son tag
         User foundUser = null;
-        for (User user : database.getUsers()) {
+        for (User user : userList.getUsers()) {
             if (user.getUserTag().equals(tag)) {
                 foundUser = user;
                 break;
@@ -95,7 +91,7 @@ public class LoginController {
         }
 
         // Vérification que le tag n'existe pas déjà
-        for (User existingUser : database.getUsers()) {
+        for (User existingUser : userList.getUsers()) {
             if (existingUser.getUserTag().equals(tag)) {
                 return "Ce tag utilisateur existe déjà";
             }
@@ -106,6 +102,9 @@ public class LoginController {
 
         // Génération du fichier utilisateur
         entityManager.writeUserFile(newUser);
+
+        userList.addUser(newUser);
+
 
         return null;
     }

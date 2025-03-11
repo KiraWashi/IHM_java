@@ -3,7 +3,7 @@ package main.java.com.ubo.tp.message.core.session;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.datamodel.user.User;
 
 /**
  * Session de l'application.

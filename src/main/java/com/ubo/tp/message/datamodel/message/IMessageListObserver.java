@@ -20,4 +20,11 @@ public interface IMessageListObserver {
 
     void notifyRefreshMessage();
 
+    /**
+     * Notification lorsqu'un Message est modifié en base de données.
+     *
+     * @param modifiedMessage
+     */
+    void notifyMessageModified(Message modifiedMessage);
+
 }

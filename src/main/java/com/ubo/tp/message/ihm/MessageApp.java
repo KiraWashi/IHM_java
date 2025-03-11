@@ -17,8 +17,10 @@ import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.core.session.Session;
 import main.java.com.ubo.tp.message.datamodel.message.IMessage;
 import main.java.com.ubo.tp.message.datamodel.message.Message;
-import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.datamodel.user.IUser;
+import main.java.com.ubo.tp.message.datamodel.user.User;
 import main.java.com.ubo.tp.message.datamodel.message.MessageList;
+import main.java.com.ubo.tp.message.datamodel.user.UserList;
 import main.java.com.ubo.tp.message.ihm.login.LoginController;
 import main.java.com.ubo.tp.message.ihm.login.LoginView;
 import main.java.com.ubo.tp.message.ihm.menu.MenuController;
@@ -39,13 +41,15 @@ import javax.swing.UIManager;
  *
  * @author S.Lucas
  */
-public class MessageApp implements ISessionObserver, Actions, IDatabaseObserver {
+public class MessageApp implements ISessionObserver, Actions {
 	/**
 	 * Base de données.
 	 */
 	protected IDatabase mDatabase;
 
 	protected IMessage mMessageList;
+
+	protected IUser mUserList;
 
 	/**
 	 * Gestionnaire des entités contenu de la base de données.
@@ -130,13 +134,13 @@ public class MessageApp implements ISessionObserver, Actions, IDatabaseObserver 
 	 * Constructeur.
 	 *
 	 */
-	public MessageApp(IDatabase database, EntityManager entityManager) {
+	public MessageApp(IDatabase database, IMessage message, IUser user, EntityManager entityManager) {
 		this.mDatabase = database;
 		this.mEntityManager = entityManager;
 		this.mSession = new Session();
 		this.mSession.addObserver(this);
-		this.mDatabase.addObserver(this);
-		this.mMessageList = new MessageList();
+		this.mMessageList = message;
+		this.mUserList = user;
 	}
 
 	/**
@@ -172,15 +176,15 @@ public class MessageApp implements ISessionObserver, Actions, IDatabaseObserver 
 
 	protected void initController(){
 		// Initialisation des contrôleurs qui nécessitent la vue principale
-		this.mLoginController = new LoginController(this.mDatabase, this.mEntityManager, this.mSession);
+		this.mLoginController = new LoginController(this.mEntityManager, this.mSession, this.mUserList);
 
-		this.mUserController = new UserController(this.mDatabase, this.mSession, this.mEntityManager);
+		this.mUserController = new UserController(this.mSession, this.mEntityManager, this.mUserList);
 
-		this.mMessageComposeController = new MessageComposeController(this.mDatabase, this.mEntityManager, this.mSession);
+		this.mMessageComposeController = new MessageComposeController(this.mEntityManager, this.mSession, this.mMessageList);
 
 		this.mNotificationController = new NotificationController(this.mDatabase, this.mSession, null);
 
-		this.mMessageListController = new MessageListController(this.mDatabase, this.mSession);
+		this.mMessageListController = new MessageListController(this.mSession, this.mMessageList, this.mUserList);
 		// Création du contrôleur du menu
 		this.mMenuController = new MenuController(this.mSession, this.mDatabase, this);
 	}
@@ -195,7 +199,7 @@ public class MessageApp implements ISessionObserver, Actions, IDatabaseObserver 
 
 		this.messageComposeView = new MessageComposeView(this.mMessageComposeController, this.mSession);
 
-		this.userListView = new UserListView(this.mUserController, this.mSession);
+		this.userListView = new UserListView(this.mUserController, this.mSession, this.mUserList);
 
 		this.notificationView = new NotificationView(this.mNotificationController);
 		// Création de la vue de contenu principal
@@ -205,7 +209,6 @@ public class MessageApp implements ISessionObserver, Actions, IDatabaseObserver 
 
 		this.messageComposeView = new MessageComposeView(this.mMessageComposeController, this.mSession);
 		this.messageListView = new MessageListView(this.mMessageListController, this.mSession, this.mMessageList);
-		this.userListView = new UserListView(this.mUserController, this.mSession);
 		this.notificationView = new NotificationView(this.mNotificationController);
 	}
 
@@ -389,9 +392,8 @@ public class MessageApp implements ISessionObserver, Actions, IDatabaseObserver 
 
 	@Override
 	public void notifyLogin(User connectedUser) {
-		this.userListView.login(connectedUser);
-		this.messageListView.refreshMessages();
 		this.mMessageList.refreshMessage();
+		this.mUserList.refreshUser();
 		this.mMainContentView.updateUIState();
 		this.mMainView.login(connectedUser);
 		this.showMainContent();
@@ -405,40 +407,8 @@ public class MessageApp implements ISessionObserver, Actions, IDatabaseObserver 
 		contentPane.revalidate();
 		contentPane.repaint();
 		this.mMainView.logout();
-		this.userListView.logout();
 		this.mMainContentView.updateUIState();
 	}
 
-	@Override
-	public void notifyMessageAdded(Message addedMessage) {
-		this.mMessageList.addMessage(addedMessage);
-	}
 
-	@Override
-	public void notifyMessageDeleted(Message deletedMessage) {
-		this.mMessageList.removeMessage(deletedMessage);
-	}
-
-	@Override
-	public void notifyMessageModified(Message modifiedMessage) {
-
-	}
-
-	@Override
-	public void notifyUserAdded(User addedUser) {
-		this.messageListView.refreshMessages();
-		this.mMainContentView.repaint();
-	}
-
-	@Override
-	public void notifyUserDeleted(User deletedUser) {
-		this.messageListView.refreshMessages();
-		this.mMainContentView.repaint();
-	}
-
-	@Override
-	public void notifyUserModified(User modifiedUser) {
-		this.messageListView.refreshMessages();
-		this.mMainContentView.repaint();
-	}
 }

@@ -1,6 +1,7 @@
 package main.java.com.ubo.tp.message.datamodel;
 
 import main.java.com.ubo.tp.message.datamodel.message.Message;
+import main.java.com.ubo.tp.message.datamodel.user.User;
 
 import java.util.Date;
 

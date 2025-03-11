@@ -5,8 +5,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import main.java.com.ubo.tp.message.common.Constants;
-import main.java.com.ubo.tp.message.core.session.ISessionObserver;
-import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.datamodel.user.User;
 
 /**
  * Classe du modèle représentant un message.

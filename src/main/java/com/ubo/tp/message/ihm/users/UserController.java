@@ -3,10 +3,10 @@ package main.java.com.ubo.tp.message.ihm.users;
 import main.java.com.ubo.tp.message.core.EntityManager;
 import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.session.ISession;
-import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.datamodel.user.IUser;
+import main.java.com.ubo.tp.message.datamodel.user.User;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -18,11 +18,6 @@ import java.util.Set;
 public class UserController {
 
     /**
-     * Base de données de l'application
-     */
-    private final IDatabase database;
-
-    /**
      * Session active
      */
     private final ISession session;
@@ -32,17 +27,18 @@ public class UserController {
      */
     private final EntityManager entityManager;
 
+    private IUser userList;
+
     /**
      * Constructeur
      *
-     * @param database Base de données
      * @param session Session active
      * @param entityManager Gestionnaire d'entités
      */
-    public UserController(IDatabase database, ISession session, EntityManager entityManager) {
-        this.database = database;
+    public UserController(ISession session, EntityManager entityManager, IUser user) {
         this.session = session;
         this.entityManager = entityManager;
+        this.userList = user;
     }
 
     /**
@@ -51,24 +47,23 @@ public class UserController {
      * @return Liste des utilisateurs
      */
     public List<User> getAllUsers(Set<User> searchResults) {
-        List<User> userList;
+        List<User> users;
         if(searchResults != null){
-            userList = new ArrayList<>(searchResults);
+            users = new ArrayList<>(searchResults);
         } else {
-            Set<User> userSet = database.getUsers();
-            userList = new ArrayList<>(userSet);
+            users = userList.getUsers();
         }
 
 
         // Tri par nom
-        userList.sort(new Comparator<User>() {
+        users.sort(new Comparator<User>() {
             @Override
             public int compare(User u1, User u2) {
                 return u1.getName().compareToIgnoreCase(u2.getName());
             }
         });
 
-        return userList;
+        return users;
     }
 
     /**
@@ -87,7 +82,7 @@ public class UserController {
         Set<User> searchResults = new HashSet<>();
 
         // Recherche par tag ou nom
-        for (User user : database.getUsers()) {
+        for (User user : userList.getUsers()) {
             if (user.getUserTag().toLowerCase().contains(searchQuery) ||
                     user.getName().toLowerCase().contains(searchQuery)) {
                 searchResults.add(user);
@@ -127,7 +122,7 @@ public class UserController {
         connectedUser.addFollowing(userToFollow.getUserTag());
 
         // Mise à jour dans la base de données
-        database.modifiyUser(connectedUser);
+        userList.modifiyUser(connectedUser);
 
         // Écriture du fichier utilisateur
         entityManager.writeUserFile(connectedUser);
@@ -161,7 +156,7 @@ public class UserController {
         connectedUser.removeFollowing(userToUnfollow.getUserTag());
 
         // Mise à jour dans la base de données
-        database.modifiyUser(connectedUser);
+        userList.modifiyUser(connectedUser);
 
         // Écriture du fichier utilisateur
         entityManager.writeUserFile(connectedUser);
@@ -196,7 +191,7 @@ public class UserController {
             return 0;
         }
 
-        return database.getFollowersCount(user);
+        return userList.getFollowersCount(user);
     }
 
     /**

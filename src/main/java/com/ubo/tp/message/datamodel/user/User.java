@@ -1,4 +1,4 @@
-package main.java.com.ubo.tp.message.datamodel;
+package main.java.com.ubo.tp.message.datamodel.user;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -60,8 +60,6 @@ public class MessageListView extends JPanel implements IMessageListObserver {
      */
     private final SimpleDateFormat dateFormat;
 
-    private IMessage messageList;
-
     /**
      * Constructeur
      *
@@ -71,9 +69,8 @@ public class MessageListView extends JPanel implements IMessageListObserver {
     public MessageListView(MessageListController messageListController, ISession session, IMessage message) {
         this.messageListController = messageListController;
         this.session = session;
-        this.messageList = message;
         this.dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-        this.messageList.addObserver(this);
+        message.addObserver(this);
 
         // Initialisation de l'interface
         this.initUI();
@@ -165,7 +162,6 @@ public class MessageListView extends JPanel implements IMessageListObserver {
             searchMessages();
         } else {
             List<Message> messages = messageListController.getRelevantMessages();
-            System.out.println(messages.size());
             displayMessages(messages);
         }
     }
@@ -235,6 +231,11 @@ public class MessageListView extends JPanel implements IMessageListObserver {
 
     @Override
     public void notifyRefreshMessage() {
+        refreshMessages();
+    }
+
+    @Override
+    public void notifyMessageModified(Message modifiedMessage) {
         refreshMessages();
     }
 

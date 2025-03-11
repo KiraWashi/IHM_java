@@ -11,8 +11,10 @@ import main.java.com.ubo.tp.message.common.Constants;
 import main.java.com.ubo.tp.message.common.DataFilesManager;
 import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.directory.IWatchableDirectoryObserver;
+import main.java.com.ubo.tp.message.datamodel.message.IMessage;
 import main.java.com.ubo.tp.message.datamodel.message.Message;
-import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.datamodel.user.IUser;
+import main.java.com.ubo.tp.message.datamodel.user.User;
 
 /**
  * Classe de gestion de la mise à jour de la base de données et de génération
@@ -22,10 +24,9 @@ import main.java.com.ubo.tp.message.datamodel.User;
  */
 public class EntityManager implements IWatchableDirectoryObserver {
 
-	/**
-	 * Base de donnée de l'application.
-	 */
-	protected final IDatabase mDatabase;
+	protected final IMessage mMessageList;
+
+	protected final IUser mUserList;
 
 	/**
 	 * Chemin d'accès au répertoire d'échange.
@@ -50,11 +51,13 @@ public class EntityManager implements IWatchableDirectoryObserver {
 	/**
 	 * Constructeur.
 	 */
-	public EntityManager(IDatabase database) {
-		this.mDatabase = database;
+	public EntityManager(IMessage message, IUser user) {
+		this.mMessageList = message;
+		this.mUserList = user;
 		this.mUserMap = new HashMap<>();
 		this.mMessageFileMap = new HashMap<>();
 		this.mUserFileMap = new HashMap<>();
+
 
 		// Ajout de l'utilisateur inconnu
 		User unknowUser = DataFilesManager.UNKNOWN_USER;
@@ -88,7 +91,7 @@ public class EntityManager implements IWatchableDirectoryObserver {
 
 			if (newUser != null) {
 				// Ajout de l'utilisateur
-				this.mDatabase.addUser(newUser);
+				this.mUserList.addUser(newUser);
 
 				// Stockage dans les maps
 				mUserMap.put(newUser.getUuid(), newUser);
@@ -108,7 +111,7 @@ public class EntityManager implements IWatchableDirectoryObserver {
 
 			if (newMessage != null) {
 				// Ajout du message
-				this.mDatabase.addMessage(newMessage);
+				this.mMessageList.addMessage(newMessage);
 
 				// MAJ de la map
 				this.mMessageFileMap.put(messageFile.getName(), newMessage);
@@ -133,7 +136,7 @@ public class EntityManager implements IWatchableDirectoryObserver {
 
 			if (deletedUser != null) {
 				// Suppression de l'utilisateur
-				this.mDatabase.removeUser(deletedUser);
+				this.mUserList.removeUser(deletedUser);
 
 				// MAJ des maps
 				mUserMap.remove(deletedUser.getUuid());
@@ -153,7 +156,7 @@ public class EntityManager implements IWatchableDirectoryObserver {
 
 			if (deletedMessage != null) {
 				// Suppression du message
-				this.mDatabase.removeMessage(deletedMessage);
+				this.mMessageList.removeMessage(deletedMessage);
 
 				// MAJ de la map
 				mMessageFileMap.remove(deletedMessageFile.getName());
@@ -175,7 +178,7 @@ public class EntityManager implements IWatchableDirectoryObserver {
 		// Récupération et parcours de la liste des utilisateurs modifiés
 		for (User modifiedUser : this.extractAllUsers(userFiles)) {
 			// Modification de l'utilisateur
-			this.mDatabase.modifiyUser(modifiedUser);
+			this.mUserList.modifiyUser(modifiedUser);
 
 			// Stockage dans la map
 			mUserMap.put(modifiedUser.getUuid(), modifiedUser);
@@ -188,7 +191,7 @@ public class EntityManager implements IWatchableDirectoryObserver {
 		// Récupération et parcours de la liste des messages modifiés
 		for (Message modifiedMessage : this.extractAllMessages(messageFiles)) {
 			// Ajout du message
-			this.mDatabase.modifiyMessage(modifiedMessage);
+			this.mMessageList.modifiyMessage(modifiedMessage);
 		}
 	}
 

@@ -4,7 +4,7 @@ import java.util.*;
 
 import main.java.com.ubo.tp.message.datamodel.message.Message;
 import main.java.com.ubo.tp.message.datamodel.Notification;
-import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.datamodel.user.User;
 import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.database.IDatabaseObserver;
 import main.java.com.ubo.tp.message.core.session.ISession;
@@ -130,17 +130,12 @@ public class NotificationController implements IDatabaseObserver, ISessionObserv
         if (connectedUser != null) {
             User sender = addedMessage.getSender();
 
-            // Pour le débogage : afficher toujours les informations
-            System.out.println("Message reçu de : " + sender.getUserTag());
-            System.out.println("User connecté : " + connectedUser.getUserTag());
-            System.out.println("isFollowing : " + connectedUser.isFollowing(sender));
-            System.out.println("Follows list : " + connectedUser.getFollows());
+
 
             // Version modifiée pour test : notifier pour tout message qui n'est pas de l'utilisateur lui-même
             if (!sender.equals(connectedUser)) {
                 Notification notification = new Notification(addedMessage, sender);
                 addNotification(notification);
-                System.out.println("Notification créée pour: " + addedMessage.getText());
             }
         }
     }

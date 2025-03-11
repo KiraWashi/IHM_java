@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.*;
 import main.java.com.ubo.tp.message.common.Constants;
 import main.java.com.ubo.tp.message.common.PropertiesManager;
-import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.datamodel.user.User;
 
 public class NotificationManager {
 

@@ -11,14 +11,15 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import main.java.com.ubo.tp.message.core.session.ISession;
-import main.java.com.ubo.tp.message.core.session.ISessionObserver;
-import main.java.com.ubo.tp.message.datamodel.User;
+import main.java.com.ubo.tp.message.datamodel.user.IUser;
+import main.java.com.ubo.tp.message.datamodel.user.IUserListObserver;
+import main.java.com.ubo.tp.message.datamodel.user.User;
 import main.java.com.ubo.tp.message.ihm.users.cell.UserCellView;
 
 /**
  * Composant d'affichage de la liste des utilisateurs
  */
-public class UserListView extends JPanel {
+public class UserListView extends JPanel implements IUserListObserver {
 
     /**
      * Contrôleur d'utilisateurs
@@ -45,15 +46,19 @@ public class UserListView extends JPanel {
      */
     private JScrollPane scrollPane;
 
+    private IUser userList;
+
     /**
      * Constructeur
      *
      * @param userController Contrôleur d'utilisateurs
      * @param session Session active
      */
-    public UserListView(UserController userController, ISession session) {
+    public UserListView(UserController userController, ISession session, IUser user) {
         this.userController = userController;
         this.session = session;
+        this.userList = user;
+        user.addObserver(this);
 
         // Initialisation de l'interface
         this.initUI();
@@ -200,11 +205,23 @@ public class UserListView extends JPanel {
 
     // Implémentation des méthodes de l'interface ISessionObserver
 
-    public void login(User connectedUser) {
+    @Override
+    public void notifyUserAdded(User addedUser) {
         refreshUsers();
     }
 
-    public void logout() {
+    @Override
+    public void notifyUserDeleted(User deletedUser) {
+        refreshUsers();
+    }
+
+    @Override
+    public void notifyRefreshUser() {
+        refreshUsers();
+    }
+
+    @Override
+    public void notifyUserModified(User modifiedUser) {
         refreshUsers();
     }
 }
