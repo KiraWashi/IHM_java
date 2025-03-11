@@ -1,14 +1,23 @@
 package main.java.com.ubo.tp.message.ihm.login;
 
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.*;
-import java.io.File;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.BorderLayout;
+import java.io.File;
 
 /**
  * Composant gérant l'affichage de la connexion et de l'inscription des utilisateurs
+ * Version JavaFX intégrée dans un conteneur Swing, compatible avec JDK 1.8
  */
 public class LoginView extends JPanel {
 
@@ -18,29 +27,29 @@ public class LoginView extends JPanel {
     private final LoginController loginController;
 
     /**
-     * Panneau de contenu principal
+     * Panel JavaFX
      */
-    private JPanel contentPanel;
+    private JFXPanel jfxPanel;
 
     /**
-     * CardLayout pour basculer entre les écrans de connexion et d'inscription
+     * Scene JavaFX pour la connexion
      */
-    private CardLayout cardLayout;
+    private Scene loginScene;
 
     /**
-     * Chemins d'accès à l'avatar sélectionné
+     * Scene JavaFX pour l'inscription
+     */
+    private Scene registerScene;
+
+    /**
+     * Chemin d'accès à l'avatar sélectionné
      */
     private String selectedAvatarPath = "";
 
     /**
-     * Constante: nom du card pour la connexion
+     * Label affichant le nom du fichier avatar sélectionné
      */
-    private static final String LOGIN_CARD = "LOGIN";
-
-    /**
-     * Constante: nom du card pour l'inscription
-     */
-    private static final String REGISTER_CARD = "REGISTER";
+    private Label avatarFileLabel;
 
     /**
      * Constructeur
@@ -59,239 +68,308 @@ public class LoginView extends JPanel {
      * Initialise l'interface utilisateur
      */
     private void initUI() {
-        // Configuration du panel principal avec CardLayout
-        cardLayout = new CardLayout();
-        contentPanel = new JPanel(cardLayout);
+        // Création du panel JavaFX
+        jfxPanel = new JFXPanel();
+        this.add(jfxPanel, BorderLayout.CENTER);
 
-        // Création des écrans
-        JPanel loginPanel = createLoginPanel();
-        JPanel registerPanel = createRegisterPanel();
-
-        // Ajout des écrans au CardLayout
-        contentPanel.add(loginPanel, LOGIN_CARD);
-        contentPanel.add(registerPanel, REGISTER_CARD);
-
-        // Ajoute le contenu au panel principal
-        this.add(contentPanel, BorderLayout.CENTER);
-
-        // Affiche l'écran de connexion par défaut
-        cardLayout.show(contentPanel, LOGIN_CARD);
+        // Initialisation de JavaFX dans un thread JavaFX
+        // L'initialisation de JavaFX se fait automatiquement avec la création de JFXPanel
+        Platform.runLater(this::initFX);
     }
 
     /**
-     * Crée le panneau de connexion
+     * Initialise les composants JavaFX
      */
-    private JPanel createLoginPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(new EmptyBorder(20, 50, 20, 50));
+    private void initFX() {
+        // Création des scènes
+        loginScene = createLoginScene();
+        registerScene = createRegisterScene();
+
+        // Définition de la scène initiale
+        jfxPanel.setScene(loginScene);
+    }
+
+    /**
+     * Crée la scène de connexion
+     */
+    private Scene createLoginScene() {
+        // Conteneur principal
+        VBox root = new VBox(15);
+        root.setPadding(new Insets(20, 50, 20, 50));
+        root.setAlignment(Pos.CENTER);
+        root.setStyle("-fx-background-color: white;");
+
+        // Logo ou titre de l'application
+        Label appLabel = new Label("MessageApp");
+        appLabel.setFont(Font.font("System", FontWeight.BOLD, 26));
+        appLabel.setTextFill(javafx.scene.paint.Color.web("#4285F4"));
 
         // Titre
-        JLabel titleLabel = new JLabel("Connexion");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        Label titleLabel = new Label("Connexion");
+        titleLabel.setFont(Font.font("System", FontWeight.BOLD, 20));
+        titleLabel.setTextFill(javafx.scene.paint.Color.web("#333333"));
 
         // Champs de saisie
-        JLabel tagLabel = new JLabel("Tag utilisateur:");
-        JTextField tagField = new JTextField(20);
+        GridPane formGrid = new GridPane();
+        formGrid.setHgap(10);
+        formGrid.setVgap(10);
+        formGrid.setAlignment(Pos.CENTER);
+        formGrid.setMaxWidth(300);
 
-        JLabel passwordLabel = new JLabel("Mot de passe:");
-        JPasswordField passwordField = new JPasswordField(20);
+        // Tag utilisateur
+        Label tagLabel = new Label("Tag utilisateur");
+        tagLabel.setTextFill(javafx.scene.paint.Color.web("#555555"));
+        TextField tagField = new TextField();
+        tagField.setPromptText("Entrez votre tag");
+        tagField.setPrefHeight(35);
+        tagField.setPrefWidth(300);
+        tagField.setStyle("-fx-background-radius: 4; -fx-border-radius: 4;");
+
+        // Mot de passe
+        Label passwordLabel = new Label("Mot de passe");
+        passwordLabel.setTextFill(javafx.scene.paint.Color.web("#555555"));
+        PasswordField passwordField = new PasswordField();
+        passwordField.setPromptText("Entrez votre mot de passe");
+        passwordField.setPrefHeight(35);
+        passwordField.setPrefWidth(300);
+        passwordField.setStyle("-fx-background-radius: 4; -fx-border-radius: 4;");
+
+        // Ajout des champs au formulaire
+        formGrid.add(tagLabel, 0, 0);
+        formGrid.add(tagField, 0, 1);
+        formGrid.add(passwordLabel, 0, 2);
+        formGrid.add(passwordField, 0, 3);
 
         // Boutons
-        JButton loginButton = new JButton("Se connecter");
-        JButton goToRegisterButton = new JButton("Créer un compte");
+        Button loginButton = new Button("Se connecter");
+        loginButton.setPrefWidth(300);
+        loginButton.setPrefHeight(40);
+        loginButton.setStyle(
+                "-fx-background-color: #4285F4; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-background-radius: 4;"
+        );
 
-        // Panel pour les boutons
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        buttonPanel.add(loginButton);
-        buttonPanel.add(goToRegisterButton);
+        Hyperlink registerLink = new Hyperlink("Créer un compte");
+        registerLink.setStyle("-fx-text-fill: #4285F4;");
 
-        // Actions des boutons
-        loginButton.addActionListener(e -> {
-            String errorMessage = loginController.attemptLogin(tagField.getText(), new String(passwordField.getPassword()));
+        // Action des boutons
+        loginButton.setOnAction(e -> {
+            String errorMessage = loginController.attemptLogin(tagField.getText(), passwordField.getText());
             if (errorMessage != null) {
-                JOptionPane.showMessageDialog(LoginView.this,
-                        errorMessage,
-                        "Erreur de connexion",
-                        JOptionPane.ERROR_MESSAGE);
+                // Utiliser SwingUtilities pour les boîtes de dialogue Swing
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(
+                            LoginView.this,
+                            errorMessage,
+                            "Erreur de connexion",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                });
             } else {
-                JOptionPane.showMessageDialog(LoginView.this,
-                        "Connexion réussie!",
-                        "Connexion",
-                        JOptionPane.INFORMATION_MESSAGE);
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(
+                            LoginView.this,
+                            "Connexion réussie!",
+                            "Connexion",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
+                });
             }
         });
 
-        goToRegisterButton.addActionListener(e -> cardLayout.show(contentPanel, REGISTER_CARD));
+        registerLink.setOnAction(e -> {
+            // Basculer vers l'écran d'inscription
+            Platform.runLater(() -> jfxPanel.setScene(registerScene));
+        });
 
-        // Layout
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        // Ajout d'espaces
+        root.getChildren().addAll(
+                appLabel,
+                new Region() {{ setMinHeight(10); }},
+                titleLabel,
+                new Region() {{ setMinHeight(15); }},
+                formGrid,
+                new Region() {{ setMinHeight(20); }},
+                loginButton,
+                registerLink
+        );
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.CENTER;
-        panel.add(titleLabel, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.WEST;
-        panel.add(tagLabel, gbc);
-
-        gbc.gridx = 1;
-        panel.add(tagField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        panel.add(passwordLabel, gbc);
-
-        gbc.gridx = 1;
-        panel.add(passwordField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.CENTER;
-        panel.add(buttonPanel, gbc);
-
-        return panel;
+        return new Scene(root, 400, 450);
     }
 
     /**
-     * Crée le panneau d'inscription
+     * Crée la scène d'inscription
      */
-    private JPanel createRegisterPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(new EmptyBorder(20, 50, 20, 50));
+    private Scene createRegisterScene() {
+        // Conteneur principal
+        VBox root = new VBox(12);
+        root.setPadding(new Insets(20, 50, 20, 50));
+        root.setAlignment(Pos.CENTER);
+        root.setStyle("-fx-background-color: white;");
 
         // Titre
-        JLabel titleLabel = new JLabel("Créer un compte");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        Label titleLabel = new Label("Créer un compte");
+        titleLabel.setFont(Font.font("System", FontWeight.BOLD, 20));
+        titleLabel.setTextFill(javafx.scene.paint.Color.web("#333333"));
 
-        // Champs de saisie
-        JLabel nameLabel = new JLabel("Nom:");
-        JTextField nameField = new JTextField(20);
+        // Formulaire d'inscription
+        GridPane formGrid = new GridPane();
+        formGrid.setHgap(10);
+        formGrid.setVgap(10);
+        formGrid.setAlignment(Pos.CENTER);
+        formGrid.setMaxWidth(300);
 
-        JLabel tagLabel = new JLabel("Tag utilisateur:");
-        JTextField tagField = new JTextField(20);
+        // Nom
+        Label nameLabel = new Label("Nom");
+        nameLabel.setTextFill(javafx.scene.paint.Color.web("#555555"));
+        TextField nameField = new TextField();
+        nameField.setPromptText("Entrez votre nom");
+        nameField.setPrefHeight(35);
+        nameField.setStyle("-fx-background-radius: 4; -fx-border-radius: 4;");
 
-        JLabel passwordLabel = new JLabel("Mot de passe:");
-        JPasswordField passwordField = new JPasswordField(20);
+        // Tag utilisateur
+        Label tagLabel = new Label("Tag utilisateur");
+        tagLabel.setTextFill(javafx.scene.paint.Color.web("#555555"));
+        TextField tagField = new TextField();
+        tagField.setPromptText("Choisissez un tag unique");
+        tagField.setPrefHeight(35);
+        tagField.setStyle("-fx-background-radius: 4; -fx-border-radius: 4;");
 
-        JLabel avatarLabel = new JLabel("Avatar:");
-        JButton avatarButton = new JButton("Choisir un avatar");
-        JLabel avatarPathLabel = new JLabel("Aucun avatar sélectionné");
+        // Mot de passe
+        Label passwordLabel = new Label("Mot de passe");
+        passwordLabel.setTextFill(javafx.scene.paint.Color.web("#555555"));
+        PasswordField passwordField = new PasswordField();
+        passwordField.setPromptText("Créez un mot de passe");
+        passwordField.setPrefHeight(35);
+        passwordField.setStyle("-fx-background-radius: 4; -fx-border-radius: 4;");
 
-        // Panel pour l'avatar
-        JPanel avatarPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        avatarPanel.add(avatarButton);
-        avatarPanel.add(avatarPathLabel);
+        // Avatar
+        Label avatarLabel = new Label("Avatar");
+        avatarLabel.setTextFill(javafx.scene.paint.Color.web("#555555"));
+
+        HBox avatarBox = new HBox(10);
+        avatarBox.setAlignment(Pos.CENTER_LEFT);
+
+        Button avatarButton = new Button("Choisir un avatar");
+        avatarButton.setStyle(
+                "-fx-background-color: #f0f0f0; " +
+                        "-fx-text-fill: #333333; " +
+                        "-fx-background-radius: 4;"
+        );
+
+        avatarFileLabel = new Label("Aucun avatar sélectionné");
+        avatarFileLabel.setTextFill(javafx.scene.paint.Color.web("#777777"));
+
+        avatarBox.getChildren().addAll(avatarButton, avatarFileLabel);
+
+        // Ajout des champs au formulaire
+        formGrid.add(nameLabel, 0, 0);
+        formGrid.add(nameField, 0, 1);
+        formGrid.add(tagLabel, 0, 2);
+        formGrid.add(tagField, 0, 3);
+        formGrid.add(passwordLabel, 0, 4);
+        formGrid.add(passwordField, 0, 5);
+        formGrid.add(avatarLabel, 0, 6);
+        formGrid.add(avatarBox, 0, 7);
 
         // Boutons
-        JButton registerButton = new JButton("S'inscrire");
-        JButton backToLoginButton = new JButton("Retour à la connexion");
+        Button registerButton = new Button("S'inscrire");
+        registerButton.setPrefWidth(300);
+        registerButton.setPrefHeight(40);
+        registerButton.setStyle(
+                "-fx-background-color: #4285F4; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-background-radius: 4;"
+        );
 
-        // Panel pour les boutons
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        buttonPanel.add(registerButton);
-        buttonPanel.add(backToLoginButton);
+        Hyperlink loginLink = new Hyperlink("Retour à la connexion");
+        loginLink.setStyle("-fx-text-fill: #4285F4;");
 
-        // Actions des boutons
-        avatarButton.addActionListener(e -> {
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setFileFilter(new FileNameExtensionFilter("Images", "jpg", "jpeg", "png", "gif"));
+        // Action des boutons
+        avatarButton.setOnAction(e -> {
+            // Ouvrir une boîte de dialogue Swing pour sélectionner un fichier
+            SwingUtilities.invokeLater(() -> {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setDialogTitle("Sélectionner un avatar");
+                fileChooser.setFileFilter(new FileNameExtensionFilter(
+                        "Images", "jpg", "jpeg", "png", "gif"));
 
-            int result = fileChooser.showOpenDialog(panel);
-            if (result == JFileChooser.APPROVE_OPTION) {
-                File selectedFile = fileChooser.getSelectedFile();
-                selectedAvatarPath = selectedFile.getAbsolutePath();
-                avatarPathLabel.setText(selectedFile.getName());
-            }
+                int result = fileChooser.showOpenDialog(LoginView.this);
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = fileChooser.getSelectedFile();
+                    selectedAvatarPath = selectedFile.getAbsolutePath();
+
+                    // Mise à jour du label dans le thread JavaFX
+                    final String fileName = selectedFile.getName();
+                    Platform.runLater(() -> {
+                        avatarFileLabel.setText(fileName);
+                    });
+                }
+            });
         });
 
-        // Actions des boutons dans le createRegisterPanel()
-        registerButton.addActionListener(e -> {
+        registerButton.setOnAction(e -> {
             String errorMessage = loginController.attemptRegister(
                     nameField.getText(),
                     tagField.getText(),
-                    new String(passwordField.getPassword()),
+                    passwordField.getText(),
                     selectedAvatarPath
             );
 
             if (errorMessage != null) {
-                JOptionPane.showMessageDialog(LoginView.this,
-                        errorMessage,
-                        "Erreur d'inscription",
-                        JOptionPane.ERROR_MESSAGE);
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(
+                            LoginView.this,
+                            errorMessage,
+                            "Erreur d'inscription",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                });
             } else {
-                JOptionPane.showMessageDialog(LoginView.this,
-                        "Inscription réussie! Vous pouvez maintenant vous connecter avec vos identifiants.",
-                        "Inscription",
-                        JOptionPane.INFORMATION_MESSAGE);
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(
+                            LoginView.this,
+                            "Inscription réussie! Vous pouvez maintenant vous connecter avec vos identifiants.",
+                            "Inscription",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
+                });
 
-                // Réinitialiser les champs du formulaire d'inscription
-                nameField.setText("");
-                tagField.setText("");
-                passwordField.setText("");
-                selectedAvatarPath = "";
-                avatarPathLabel.setText("Aucun avatar sélectionné");
+                // Réinitialiser les champs
+                Platform.runLater(() -> {
+                    nameField.clear();
+                    tagField.clear();
+                    passwordField.clear();
+                    selectedAvatarPath = "";
+                    avatarFileLabel.setText("Aucun avatar sélectionné");
 
-                // Retourner à l'écran de connexion
-                cardLayout.show(contentPanel, LOGIN_CARD);
+                    // Retourner à l'écran de connexion
+                    jfxPanel.setScene(loginScene);
+                });
             }
         });
 
-        backToLoginButton.addActionListener(e -> cardLayout.show(contentPanel, LOGIN_CARD));
+        loginLink.setOnAction(e -> {
+            // Basculer vers l'écran de connexion
+            Platform.runLater(() -> jfxPanel.setScene(loginScene));
+        });
 
-        // Layout
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        // Assemblage final
+        VBox buttonBox = new VBox(10);
+        buttonBox.setAlignment(Pos.CENTER);
+        buttonBox.getChildren().addAll(registerButton, loginLink);
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.CENTER;
-        panel.add(titleLabel, gbc);
+        root.getChildren().addAll(
+                titleLabel,
+                new Region() {{ setMinHeight(10); }},
+                formGrid,
+                new Region() {{ setMinHeight(15); }},
+                buttonBox
+        );
 
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.WEST;
-        panel.add(nameLabel, gbc);
-
-        gbc.gridx = 1;
-        panel.add(nameField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        panel.add(tagLabel, gbc);
-
-        gbc.gridx = 1;
-        panel.add(tagField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        panel.add(passwordLabel, gbc);
-
-        gbc.gridx = 1;
-        panel.add(passwordField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        panel.add(avatarLabel, gbc);
-
-        gbc.gridx = 1;
-        panel.add(avatarPanel, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 5;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.CENTER;
-        panel.add(buttonPanel, gbc);
-
-        return panel;
+        return new Scene(root, 400, 500);
     }
 }
