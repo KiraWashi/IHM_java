@@ -1,19 +1,36 @@
 package main.java.com.ubo.tp.message.ihm.menu;
 
-import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.datamodel.user.User;
 
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+
 /**
- * Vue unifiée pour le menu de l'application.
- * Combine les fonctionnalités de MessageAppMenuView, ProfileView, DirectoryChooserView et AboutView.
+ * Vue du menu en JavaFX intégrée dans un composant Swing (JMenuBar)
+ * Version optimisée utilisant davantage de fonctionnalités JavaFX
  */
 public class MenuView extends JMenuBar implements ISessionObserver {
 
@@ -28,43 +45,78 @@ public class MenuView extends JMenuBar implements ISessionObserver {
     private final MenuController menuController;
 
     /**
-     * Menu Compte (dynamique selon connexion)
+     * Composant pour l'intégration JavaFX dans Swing
      */
-    private JMenu accountMenu;
+    private JFXPanel jfxPanel;
 
     /**
-     * Logo par défaut pour l'application
+     * Scène JavaFX pour le menu
      */
-    private ImageIcon defaultLogo;
+    private Scene menuScene;
+
+    /**
+     * Barre de menu JavaFX
+     */
+    private MenuBar menuBar;
+
+    /**
+     * Menus JavaFX
+     */
+    private javafx.scene.control.Menu fileMenu;
+    private javafx.scene.control.Menu accountMenu;
+    private javafx.scene.control.Menu helpMenu;
 
     /**
      * Parent pour les boîtes de dialogue
      */
     private Component parentComponent;
 
+    /**
+     * Utilisateur connecté
+     */
     private User connectedUser;
+
+    /**
+     * Logo par défaut pour l'application
+     */
+    private Image defaultLogo;
+
+    /**
+     * Logo par défaut au format Swing
+     */
+    private ImageIcon defaultLogoIcon;
 
     /**
      * Constructeur.
      *
      * @param menuController Le contrôleur du menu
+     * @param session La session utilisateur
      */
     public MenuView(MenuController menuController, ISession session) {
         this.menuController = menuController;
 
         // Chargement du logo par défaut
         try {
-            this.defaultLogo = new ImageIcon(ImageIO.read(new File(ICON_PATH + "logo_20.png")));
+            File logoFile = new File(ICON_PATH + "logo_20.png");
+            if (logoFile.exists()) {
+                this.defaultLogo = new Image(new FileInputStream(logoFile));
+                this.defaultLogoIcon = new ImageIcon(logoFile.getAbsolutePath());
+            } else {
+                System.err.println("Logo non trouvé: " + logoFile.getAbsolutePath());
+                this.defaultLogo = null;
+                this.defaultLogoIcon = null;
+            }
         } catch (IOException e) {
             System.err.println("Impossible de charger le logo par défaut: " + e.getMessage());
-            this.defaultLogo = new ImageIcon();
+            this.defaultLogo = null;
+            this.defaultLogoIcon = null;
         }
 
+        // S'abonner aux changements de session
         session.addObserver(this);
 
-
-        // Initialisation du menu
-        this.initMenu();
+        // Initialisation de l'interface
+        initMenu();
     }
 
     /**
@@ -77,98 +129,148 @@ public class MenuView extends JMenuBar implements ISessionObserver {
     }
 
     /**
-     * Initialisation du menu de l'application
+     * Initialisation du menu JavaFX
      */
     private void initMenu() {
-        // Menu Fichier
-        JMenu fileMenu = new JMenu("Fichier");
+        // Créer un unique panneau JavaFX qui occupera toute la barre de menu
+        jfxPanel = new JFXPanel();
 
-        // Élément pour choisir le répertoire d'échange
-        JMenuItem directoryItem = new JMenuItem("Choisir répertoire d'échange");
+        // Définir les dimensions du panneau
+        jfxPanel.setPreferredSize(new Dimension(800, 25));
+
+        // Initialiser JavaFX
+        Platform.runLater(this::setupJavaFXMenu);
+
+        // Ajouter le panneau JavaFX au menu Swing
+        this.add(jfxPanel);
+    }
+
+    /**
+     * Configuration de l'interface JavaFX du menu
+     */
+    private void setupJavaFXMenu() {
+        // Créer la barre de menu JavaFX
+        menuBar = new MenuBar();
+        menuBar.setPrefHeight(25);
+
+        // Créer les menus
+        createFileMenu();
+        createAccountMenu();
+        createHelpMenu();
+
+        // Ajouter les menus à la barre
+        menuBar.getMenus().addAll(fileMenu, accountMenu, helpMenu);
+
+        // Paramétrer la visibilité initiale (compte invisible si non connecté)
+        accountMenu.setVisible(false);
+
+        // Créer la scène avec la barre de menu
+        BorderPane root = new BorderPane();
+        root.setTop(menuBar);
+        menuScene = new Scene(root);
+
+        // Définir la scène
+        jfxPanel.setScene(menuScene);
+    }
+
+    /**
+     * Création du menu Fichier
+     */
+    private void createFileMenu() {
+        // Créer le menu Fichier
+        fileMenu = new javafx.scene.control.Menu("Fichier");
+
+        // Créer les éléments de menu
+        MenuItem directoryItem = createMenuItem("Choisir répertoire d'échange", "editIcon_20.png",
+                event -> showDirectoryChooser());
+
+        MenuItem exitItem = createMenuItem("Quitter", "exitIcon_20.png",
+                event -> menuController.exit());
+
+        // Ajouter les éléments au menu
+        fileMenu.getItems().addAll(directoryItem, new SeparatorMenuItem(), exitItem);
+    }
+
+    /**
+     * Création du menu Compte
+     */
+    private void createAccountMenu() {
+        // Créer le menu Compte
+        accountMenu = new javafx.scene.control.Menu("Compte");
+
+        // Créer les éléments de menu
+        MenuItem profileItem = createMenuItem("Mon profil", "logo_20.png",
+                event -> {
+                    if (connectedUser != null) {
+                        showUserProfile(connectedUser);
+                    }
+                });
+
+        MenuItem logoutItem = createMenuItem("Déconnexion", "exitIcon_20.png",
+                event -> menuController.logout());
+
+        // Ajouter les éléments au menu
+        accountMenu.getItems().addAll(profileItem, new SeparatorMenuItem(), logoutItem);
+    }
+
+    /**
+     * Création du menu Aide
+     */
+    private void createHelpMenu() {
+        // Créer le menu Aide
+        helpMenu = new javafx.scene.control.Menu("?");
+
+        // Créer les éléments de menu
+        MenuItem aboutItem = createMenuItem("À propos", "logo_20.png",
+                event -> showAboutDialog());
+
+        // Ajouter les éléments au menu
+        helpMenu.getItems().add(aboutItem);
+    }
+
+    /**
+     * Méthode utilitaire pour créer un élément de menu avec icône
+     *
+     * @param text Texte de l'élément de menu
+     * @param iconName Nom du fichier icône
+     * @param action Action à exécuter au clic
+     * @return L'élément de menu créé
+     */
+    private MenuItem createMenuItem(String text, String iconName, javafx.event.EventHandler<javafx.event.ActionEvent> action) {
+        MenuItem item = new MenuItem(text);
+
+        // Ajouter l'icône si disponible
         try {
-            directoryItem.setIcon(new ImageIcon(ImageIO.read(new File(ICON_PATH + "editIcon_20.png"))));
-        } catch (IOException e) {
-            System.err.println("Impossible de charger l'icône de dossier: " + e.getMessage());
-        }
-        directoryItem.addActionListener(e -> showDirectoryChooser());
-
-        // Élément pour quitter
-        JMenuItem exitItem = new JMenuItem("Quitter");
-        try {
-            exitItem.setIcon(new ImageIcon(ImageIO.read(new File(ICON_PATH + "exitIcon_20.png"))));
-        } catch (IOException e) {
-            System.err.println("Impossible de charger l'icône de sortie: " + e.getMessage());
-        }
-        exitItem.addActionListener(e -> menuController.exit());
-
-        // Ajout des éléments au menu Fichier
-        fileMenu.add(directoryItem);
-        fileMenu.addSeparator();
-        fileMenu.add(exitItem);
-
-        // Menu Compte (affiché uniquement si un utilisateur est connecté)
-        accountMenu = new JMenu("Compte");
-        accountMenu.setVisible(false); // Caché par défaut
-
-        // Élément pour voir son profil
-        JMenuItem profileItem = new JMenuItem("Mon profil");
-        try {
-            profileItem.setIcon(new ImageIcon(ImageIO.read(new File(ICON_PATH + "logo_20.png"))));
-        } catch (IOException e) {
-            System.err.println("Impossible de charger l'icône de profil: " + e.getMessage());
-        }
-        profileItem.addActionListener(e -> {
-            if (connectedUser != null) {
-                showUserProfile(connectedUser);
+            File iconFile = new File(ICON_PATH + iconName);
+            if (iconFile.exists()) {
+                Image icon = new Image(new FileInputStream(iconFile));
+                ImageView imageView = new ImageView(icon);
+                imageView.setFitHeight(16);
+                imageView.setFitWidth(16);
+                item.setGraphic(imageView);
             }
-        });
-
-        // Élément pour se déconnecter
-        JMenuItem logoutItem = new JMenuItem("Déconnexion");
-        try {
-            logoutItem.setIcon(new ImageIcon(ImageIO.read(new File(ICON_PATH + "exitIcon_20.png"))));
         } catch (IOException e) {
-            System.err.println("Impossible de charger l'icône de déconnexion: " + e.getMessage());
+            System.err.println("Impossible de charger l'icône " + iconName + ": " + e.getMessage());
         }
-        logoutItem.addActionListener(e -> menuController.logout());
 
-        // Ajout des éléments au menu Compte
-        accountMenu.add(profileItem);
-        accountMenu.addSeparator();
-        accountMenu.add(logoutItem);
-
-        // Menu Aide
-        JMenu helpMenu = new JMenu("?");
-
-        // Élément À propos
-        JMenuItem aboutItem = new JMenuItem("À propos");
-        try {
-            aboutItem.setIcon(new ImageIcon(ImageIO.read(new File(ICON_PATH + "logo_20.png"))));
-        } catch (IOException e) {
-            System.err.println("Impossible de charger l'icône d'aide: " + e.getMessage());
+        // Ajouter l'action
+        if (action != null) {
+            item.setOnAction(action);
         }
-        aboutItem.addActionListener(e -> showAboutDialog());
 
-        // Ajout des éléments au menu Aide
-        helpMenu.add(aboutItem);
-
-        // Ajout des menus à la barre de menu
-        this.add(fileMenu);
-        this.add(accountMenu);
-        this.add(helpMenu);
-
-        // Vérification initiale de l'état de connexion
-        updateMenuState(menuController.isUserConnected());
+        return item;
     }
 
     /**
      * Met à jour l'état du menu en fonction de la connexion
-     * Cette méthode est appelée par le contrôleur
      *
      * @param isConnected true si un utilisateur est connecté, false sinon
      */
     public void updateMenuState(boolean isConnected) {
-        accountMenu.setVisible(isConnected);
+        // Mettre à jour l'état du menu dans le thread JavaFX
+        Platform.runLater(() -> {
+            accountMenu.setVisible(isConnected);
+        });
 
         // Rafraîchir la barre de menu
         this.revalidate();
@@ -177,44 +279,42 @@ public class MenuView extends JMenuBar implements ISessionObserver {
 
     /**
      * Affiche un sélecteur de répertoire
-     *
      */
     public void showDirectoryChooser() {
-        // Création du sélecteur de fichier
-        JFileChooser fileChooser = new JFileChooser();
+        // Utiliser JFileChooser de Swing pour sélectionner un répertoire
+        SwingUtilities.invokeLater(() -> {
+            JFileChooser fileChooser = new JFileChooser();
 
-        // Configurer le JFileChooser pour qu'il s'ouvre à la racine du projet
-        File projectRoot = new File(System.getProperty("user.dir"));
-        fileChooser.setCurrentDirectory(projectRoot);
+            // Configurer le JFileChooser pour qu'il s'ouvre à la racine du projet
+            File projectRoot = new File(System.getProperty("user.dir"));
+            fileChooser.setCurrentDirectory(projectRoot);
 
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fileChooser.setDialogTitle("Sélectionnez un répertoire d'échange");
+            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            fileChooser.setDialogTitle("Sélectionnez un répertoire d'échange");
 
-        // Affichage du sélecteur de fichier
-        int returnValue = fileChooser.showOpenDialog(parentComponent);
+            // Affichage du sélecteur de fichier
+            int returnValue = fileChooser.showOpenDialog(parentComponent);
 
-        if (returnValue == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = fileChooser.getSelectedFile();
 
-            // Vérifier si le répertoire est valide
-            if (menuController.isValidExchangeDirectory(selectedFile)) {
-                menuController.changeDirectory(selectedFile.getAbsolutePath());
-            } else {
-                // Affichage d'un message d'erreur
-                JOptionPane.showMessageDialog(
-                        parentComponent,
-                        "Le répertoire sélectionné n'est pas valide.\n" +
-                                "Veuillez sélectionner un répertoire accessible en lecture et écriture.",
-                        "Erreur",
-                        JOptionPane.ERROR_MESSAGE
-                );
+                // Vérifier si le répertoire est valide
+                if (menuController.isValidExchangeDirectory(selectedFile)) {
+                    menuController.changeDirectory(selectedFile.getAbsolutePath());
+                } else {
+                    // Affichage d'un message d'erreur
+                    showErrorDialog(
+                            "Le répertoire sélectionné n'est pas valide.\n" +
+                                    "Veuillez sélectionner un répertoire accessible en lecture et écriture.",
+                            "Erreur de répertoire"
+                    );
+                }
             }
-        }
+        });
     }
 
-
     /**
-     * Affiche le profil d'un utilisateur
+     * Affiche le profil d'un utilisateur avec une boîte de dialogue JavaFX
      *
      * @param user L'utilisateur dont le profil doit être affiché
      */
@@ -228,79 +328,192 @@ public class MenuView extends JMenuBar implements ISessionObserver {
         int followedCount = menuController.getFollowedCount(user);
         int messagesCount = menuController.getUserMessagesCount(user);
 
-        // Construction des informations du profil
-        String profileInfo = "Nom: " + user.getName() + "\n" +
-                "Tag: @" + user.getUserTag() + "\n" +
-                "Abonnements: " + followedCount + "\n" +
-                "Followers: " + followersCount + "\n" +
-                "Messages: " + messagesCount;
+        // Création d'une boîte de dialogue JavaFX personnalisée
+        Platform.runLater(() -> {
+            // Créer une nouvelle étape pour la boîte de dialogue
+            javafx.stage.Stage dialogStage = new javafx.stage.Stage();
+            dialogStage.setTitle("Profil de " + user.getName());
+            dialogStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
 
-        // Création de l'icône à partir de l'avatar de l'utilisateur ou utilisation du logo par défaut
-        ImageIcon profileIcon = defaultLogo;
-        if (user.getAvatarPath() != null && !user.getAvatarPath().isEmpty()) {
-            try {
-                profileIcon = new ImageIcon(ImageIO.read(new File(user.getAvatarPath())));
-            } catch (IOException e) {
-                System.err.println("Impossible de charger l'avatar: " + e.getMessage());
+            // Configuration de l'icône de la fenêtre
+            if (defaultLogo != null) {
+                dialogStage.getIcons().add(defaultLogo);
             }
-        }
 
-        // Affichage de la boîte de dialogue avec les informations du profil
-        JOptionPane.showMessageDialog(
-                parentComponent,
-                profileInfo,
-                "Profil de " + user.getName(),
-                JOptionPane.INFORMATION_MESSAGE,
-                profileIcon
-        );
+            // Créer le contenu de la boîte de dialogue
+            BorderPane root = new BorderPane();
+            root.setPadding(new Insets(20));
+
+            // Avatar/Image utilisateur
+            ImageView avatarView = null;
+            try {
+                if (user.getAvatarPath() != null && !user.getAvatarPath().isEmpty()) {
+                    File avatarFile = new File(user.getAvatarPath());
+                    if (avatarFile.exists()) {
+                        Image avatarImage = new Image(new FileInputStream(avatarFile));
+                        avatarView = new ImageView(avatarImage);
+                    }
+                }
+
+                if (avatarView == null && defaultLogo != null) {
+                    avatarView = new ImageView(defaultLogo);
+                }
+
+                if (avatarView != null) {
+                    avatarView.setFitHeight(64);
+                    avatarView.setFitWidth(64);
+                    avatarView.setPreserveRatio(true);
+
+                    HBox avatarBox = new HBox(avatarView);
+                    avatarBox.setAlignment(Pos.CENTER);
+                    root.setTop(avatarBox);
+                    BorderPane.setMargin(avatarBox, new Insets(0, 0, 15, 0));
+                }
+            } catch (IOException e) {
+                System.err.println("Erreur lors du chargement de l'avatar: " + e.getMessage());
+            }
+
+            // Informations du profil
+            VBox infoBox = new VBox(10);
+            infoBox.setAlignment(Pos.CENTER_LEFT);
+
+            Label nameLabel = new Label("Nom: " + user.getName());
+            nameLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
+
+            Label tagLabel = new Label("Tag: @" + user.getUserTag());
+
+            Label followingLabel = new Label("Abonnements: " + followedCount);
+            Label followersLabel = new Label("Followers: " + followersCount);
+            Label messagesLabel = new Label("Messages: " + messagesCount);
+
+            infoBox.getChildren().addAll(nameLabel, tagLabel,
+                    new Separator(),
+                    followingLabel, followersLabel, messagesLabel);
+
+            root.setCenter(infoBox);
+
+            // Bouton fermer
+            Button closeButton = new Button("Fermer");
+            closeButton.setOnAction(e -> dialogStage.close());
+
+            HBox buttonBox = new HBox(closeButton);
+            buttonBox.setAlignment(Pos.CENTER_RIGHT);
+            root.setBottom(buttonBox);
+            BorderPane.setMargin(buttonBox, new Insets(15, 0, 0, 0));
+
+            // Définir la scène
+            Scene scene = new Scene(root, 300, 250);
+            dialogStage.setScene(scene);
+
+            // Afficher la boîte de dialogue
+            dialogStage.showAndWait();
+        });
     }
 
     /**
-     * Affiche la boîte de dialogue "À propos"
+     * Affiche la boîte de dialogue "À propos" en JavaFX
      */
     public void showAboutDialog() {
-        // Création du panneau personnalisé pour JOptionPane
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        Platform.runLater(() -> {
+            // Créer une nouvelle étape pour la boîte de dialogue
+            javafx.stage.Stage aboutStage = new javafx.stage.Stage();
+            aboutStage.setTitle("À propos");
+            aboutStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
 
-        // Panel du haut avec titre
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JLabel titleLabel = new JLabel("UBO M2-TIIL");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        topPanel.add(titleLabel);
+            // Configuration de l'icône de la fenêtre
+            if (defaultLogo != null) {
+                aboutStage.getIcons().add(defaultLogo);
+            }
 
-        // Panel du centre avec informations supplémentaires
-        JPanel centerPanel = new JPanel();
-        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+            // Créer le contenu de la boîte de dialogue
+            VBox root = new VBox(15);
+            root.setPadding(new Insets(20));
+            root.setAlignment(Pos.CENTER);
 
-        JLabel deptLabel = new JLabel("Département Informatique");
-        deptLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            // Logo
+            if (defaultLogo != null) {
+                ImageView logoView = new ImageView(defaultLogo);
+                logoView.setFitHeight(64);
+                logoView.setFitWidth(64);
+                logoView.setPreserveRatio(true);
+                root.getChildren().add(logoView);
+            }
 
-        JLabel appNameLabel = new JLabel(menuController.getAppName());
-        appNameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            // Titre
+            Label titleLabel = new Label("UBO M2-TIIL");
+            titleLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
 
-        JLabel versionLabel = new JLabel("Version " + menuController.getAppVersion());
-        versionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            // Informations
+            Label deptLabel = new Label("Département Informatique");
+            Label appNameLabel = new Label(menuController.getAppName());
+            Label versionLabel = new Label("Version " + menuController.getAppVersion());
 
-        centerPanel.add(Box.createVerticalStrut(10));
-        centerPanel.add(deptLabel);
-        centerPanel.add(Box.createVerticalStrut(5));
-        centerPanel.add(appNameLabel);
-        centerPanel.add(Box.createVerticalStrut(5));
-        centerPanel.add(versionLabel);
-        centerPanel.add(Box.createVerticalStrut(10));
+            // Bouton fermer
+            Button closeButton = new Button("Fermer");
+            closeButton.setOnAction(e -> aboutStage.close());
 
-        // Organisation du panneau
-        panel.add(topPanel, BorderLayout.NORTH);
-        panel.add(centerPanel, BorderLayout.CENTER);
+            // Ajout des composants
+            root.getChildren().addAll(
+                    titleLabel,
+                    new Separator(),
+                    deptLabel,
+                    appNameLabel,
+                    versionLabel,
+                    closeButton
+            );
 
-        // Création de la boîte de dialogue avec JOptionPane
-        JOptionPane.showMessageDialog(
-                parentComponent,
-                panel,
-                "À propos",
-                JOptionPane.INFORMATION_MESSAGE,
-                defaultLogo
-        );
+            // Définir la scène
+            Scene scene = new Scene(root, 300, 250);
+            aboutStage.setScene(scene);
+
+            // Afficher la boîte de dialogue
+            aboutStage.showAndWait();
+        });
+    }
+
+    /**
+     * Affiche une boîte de dialogue d'erreur en JavaFX
+     *
+     * @param message Message d'erreur
+     * @param title Titre de la boîte de dialogue
+     */
+    private void showErrorDialog(String message, String title) {
+        Platform.runLater(() -> {
+            // Créer une nouvelle étape pour la boîte de dialogue
+            javafx.stage.Stage errorStage = new javafx.stage.Stage();
+            errorStage.setTitle(title);
+            errorStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+
+            // Créer le contenu de la boîte de dialogue
+            VBox root = new VBox(15);
+            root.setPadding(new Insets(20));
+            root.setAlignment(Pos.CENTER);
+
+            // Icône d'erreur
+            Label iconLabel = new Label("⚠");
+            iconLabel.setFont(Font.font("System", 36));
+            iconLabel.setTextFill(javafx.scene.paint.Color.RED);
+
+            // Message d'erreur
+            Label messageLabel = new Label(message);
+            messageLabel.setWrapText(true);
+            messageLabel.setMaxWidth(300);
+            messageLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+
+            // Bouton OK
+            Button okButton = new Button("OK");
+            okButton.setOnAction(e -> errorStage.close());
+
+            // Ajout des composants
+            root.getChildren().addAll(iconLabel, messageLabel, okButton);
+
+            // Définir la scène
+            Scene scene = new Scene(root, 350, 200);
+            errorStage.setScene(scene);
+
+            // Afficher la boîte de dialogue
+            errorStage.showAndWait();
+        });
     }
 
     @Override
@@ -311,6 +524,7 @@ public class MenuView extends JMenuBar implements ISessionObserver {
 
     @Override
     public void notifyLogout() {
+        this.connectedUser = null;
         this.updateMenuState(false);
     }
 }
