@@ -1,23 +1,36 @@
 package main.java.com.ubo.tp.message.ihm.messages.list.cell;
 
-import java.awt.*;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+
+import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.io.File;
-import java.io.IOException;
+import java.io.FileInputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.datamodel.message.Message;
 import main.java.com.ubo.tp.message.datamodel.user.User;
 
 /**
- * Composant représentant une cellule de message dans la liste
+ * Composant combinant Swing et JavaFX pour un rendu de message amélioré
  */
 public class MessageCellView extends JPanel {
 
@@ -37,24 +50,45 @@ public class MessageCellView extends JPanel {
     private final ISession session;
 
     /**
+     * Panneau JavaFX pour le rendu
+     */
+    private JFXPanel fxPanel;
+
+    /**
      * Constructeur
      *
      * @param message Message à afficher
      * @param dateFormat Format de date pour l'affichage
-     * @param session Session active pour déterminer l'utilisateur connecté
+     * @param session Session active
      */
     public MessageCellView(Message message, SimpleDateFormat dateFormat, ISession session) {
         this.message = message;
         this.dateFormat = dateFormat;
         this.session = session;
 
-        this.initUI();
+        initSwingUI();
     }
 
     /**
-     * Initialisation de l'interface utilisateur
+     * Initialisation de l'interface Swing
      */
-    private void initUI() {
+    private void initSwingUI() {
+        this.setLayout(new BorderLayout());
+
+        // Créer le panneau JavaFX
+        fxPanel = new JFXPanel();
+        fxPanel.setPreferredSize(new Dimension(500, 100));
+
+        this.add(fxPanel, BorderLayout.CENTER);
+
+        // Initialiser le contenu JavaFX
+        Platform.runLater(this::initFXContent);
+    }
+
+    /**
+     * Initialisation du contenu JavaFX
+     */
+    private void initFXContent() {
         // Récupération des données du message
         User sender = message.getSender();
         String messageText = message.getText();
@@ -64,121 +98,157 @@ public class MessageCellView extends JPanel {
         User connectedUser = session.getConnectedUser();
         boolean isCurrentUserMessage = message.getSender().equals(connectedUser);
 
-        // Configuration du layout en fonction de l'émetteur du message
-        this.setLayout(new BorderLayout(10, 5));
-        this.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+        // Créer la racine JavaFX
+        HBox root = new HBox(10);
+        root.setPadding(new Insets(10));
+        root.setStyle(
+                "-fx-background-color: " + (isCurrentUserMessage ? "#e6f3e6" : "white") + "; " +
+                        "-fx-background-radius: 8px; " +
+                        "-fx-border-color: " + (isCurrentUserMessage ? "#c0e0c0" : "#e0e0e0") + "; " +
+                        "-fx-border-radius: 8px;"
+        );
 
-        this.setBorder(new CompoundBorder(
-                new EmptyBorder(5, 2, 5, 2),
-                new CompoundBorder(
-                        new LineBorder(new Color(200, 230, 200), 1, true), // Couleur légèrement verte
-                        new EmptyBorder(10, 10, 10, 10)
-                )
-        ));
+        // Avatar
+        ImageView avatarView = createAvatarView(sender);
 
-        if (isCurrentUserMessage) {
-            // Message de l'utilisateur connecté
-            this.setBackground(new Color(240, 255, 240)); // Vert très clair
-        } else {
-            // Message des autres utilisateurs
-            this.setBackground(Color.WHITE);
-        }
+        // Conteneur principal pour le message
+        VBox messageContainer = new VBox(5);
+        messageContainer.setAlignment(Pos.TOP_LEFT);
+        HBox.setHgrow(messageContainer, Priority.ALWAYS);
 
-        // Panneau pour l'avatar
-        JPanel avatarPanel = new JPanel(new BorderLayout());
-        avatarPanel.setPreferredSize(new Dimension(50, 50));
-        avatarPanel.setOpaque(false);
+        // En-tête du message
+        HBox headerBox = createMessageHeader(sender, messageDate);
 
-        JLabel avatarLabel = new JLabel();
-        avatarLabel.setHorizontalAlignment(JLabel.CENTER);
+        // Corps du message
+        TextArea messageTextArea = createMessageTextArea(messageText, isCurrentUserMessage);
 
-        // Chargement de l'avatar s'il existe
-        if (sender.getAvatarPath() != null && !sender.getAvatarPath().isEmpty()) {
-            try {
+        // Assemblage du conteneur
+        messageContainer.getChildren().addAll(headerBox, messageTextArea);
+
+        // Ajout des composants à la racine
+        root.getChildren().addAll(avatarView, messageContainer);
+
+        // Créer et définir la scène
+        Scene scene = new Scene(root);
+        fxPanel.setScene(scene);
+    }
+
+    /**
+     * Crée la vue de l'avatar
+     */
+    private ImageView createAvatarView(User sender) {
+        ImageView avatarView = new ImageView();
+        avatarView.setFitWidth(50);
+        avatarView.setFitHeight(50);
+        avatarView.setPreserveRatio(true);
+
+        try {
+            // Charger l'avatar
+            if (sender.getAvatarPath() != null && !sender.getAvatarPath().isEmpty()) {
                 File avatarFile = new File(sender.getAvatarPath());
                 if (avatarFile.exists()) {
-                    ImageIcon avatarIcon = new ImageIcon(ImageIO.read(avatarFile));
-                    Image img = avatarIcon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-                    avatarLabel.setIcon(new ImageIcon(img));
+                    Image avatarImage = new Image(new FileInputStream(avatarFile), 50, 50, true, true);
+                    avatarView.setImage(avatarImage);
+
+                    // Clip circulaire
+                    Circle clip = new Circle(25, 25, 25);
+                    avatarView.setClip(clip);
                 } else {
-                    // Avatar par défaut
-                    avatarLabel.setText(sender.getName().substring(0, 1).toUpperCase());
-                    avatarLabel.setFont(avatarLabel.getFont().deriveFont(Font.BOLD, 18));
+                    avatarView = createDefaultAvatarView(sender);
                 }
-            } catch (IOException e) {
-                // Avatar par défaut en cas d'erreur
-                avatarLabel.setText(sender.getName().substring(0, 1).toUpperCase());
-                avatarLabel.setFont(avatarLabel.getFont().deriveFont(Font.BOLD, 18));
+            } else {
+                avatarView = createDefaultAvatarView(sender);
             }
-        } else {
-            // Avatar par défaut
-            avatarLabel.setText(sender.getName().substring(0, 1).toUpperCase());
-            avatarLabel.setFont(avatarLabel.getFont().deriveFont(Font.BOLD, 18));
+        } catch (Exception e) {
+            avatarView = createDefaultAvatarView(sender);
         }
 
-        avatarPanel.add(avatarLabel, BorderLayout.CENTER);
+        return avatarView;
+    }
 
-        // Panneau central pour le contenu du message
-        JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setOpaque(false);
+    /**
+     * Crée un avatar par défaut
+     */
+    private ImageView createDefaultAvatarView(User sender) {
+        ImageView avatarView = new ImageView();
+        avatarView.setFitWidth(50);
+        avatarView.setFitHeight(50);
 
-        // En-tête avec nom, tag et date
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setOpaque(false);
+        // Créer un avatar textuel
+        StackPane avatarPane = new StackPane();
+        avatarPane.setPrefSize(50, 50);
+        avatarPane.setStyle("-fx-background-color: #4285F4; -fx-background-radius: 25px;");
 
-        // Nom et tag de l'expéditeur
-        JPanel userPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        userPanel.setOpaque(false);
+        Label initialLabel = new Label(sender.getName().substring(0, 1).toUpperCase());
+        initialLabel.setFont(Font.font("Arial", FontWeight.BOLD, 20));
+        initialLabel.setTextFill(Color.WHITE);
 
-        JLabel nameLabel = new JLabel(sender.getName());
-        nameLabel.setFont(nameLabel.getFont().deriveFont(Font.BOLD));
+        avatarPane.getChildren().add(initialLabel);
 
-        JLabel tagLabel = new JLabel("@" + sender.getUserTag());
-        tagLabel.setForeground(new Color(100, 100, 100));
+        // Capture de l'image
+        Scene tempScene = new Scene(avatarPane, 50, 50);
+        SnapshotParameters params = new SnapshotParameters();
+        params.setFill(Color.TRANSPARENT);
+        Image image = avatarPane.snapshot(params, null);
 
-        userPanel.add(nameLabel);
-        userPanel.add(tagLabel);
+        avatarView.setImage(image);
 
-        headerPanel.add(userPanel, BorderLayout.WEST);
+        // Clip circulaire
+        Circle clip = new Circle(25, 25, 25);
+        avatarView.setClip(clip);
+
+        return avatarView;
+    }
+
+    /**
+     * Crée l'en-tête du message
+     */
+    private HBox createMessageHeader(User sender, Date messageDate) {
+        HBox headerBox = new HBox(10);
+        headerBox.setAlignment(Pos.CENTER_LEFT);
+
+        // Nom de l'utilisateur
+        Label nameLabel = new Label(sender.getName());
+        nameLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        nameLabel.setTextFill(Color.web("#333333"));
+
+        // Tag de l'utilisateur
+        Label tagLabel = new Label("@" + sender.getUserTag());
+        tagLabel.setFont(Font.font("Arial", 12));
+        tagLabel.setTextFill(Color.web("#666666"));
 
         // Date du message
-        JLabel dateLabel = new JLabel(dateFormat.format(messageDate));
-        dateLabel.setFont(dateLabel.getFont().deriveFont(Font.ITALIC, 11));
-        dateLabel.setForeground(new Color(100, 100, 100));
+        Label dateLabel = new Label(dateFormat.format(messageDate));
+        dateLabel.setFont(Font.font("Arial", FontWeight.LIGHT, 10));
+        dateLabel.setTextFill(Color.web("#999999"));
 
-        // Alignement de la date en fonction de l'émetteur
-        JPanel datePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
-        datePanel.setOpaque(false);
-        datePanel.add(dateLabel);
-        headerPanel.add(datePanel, BorderLayout.EAST);
+        headerBox.getChildren().addAll(nameLabel, tagLabel, dateLabel);
+        return headerBox;
+    }
 
-        contentPanel.add(headerPanel);
-        contentPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+    /**
+     * Crée la zone de texte du message
+     */
+    private TextArea createMessageTextArea(String messageText, boolean isCurrentUserMessage) {
+        TextArea messageTextArea = new TextArea(messageText);
+        messageTextArea.setWrapText(true);
+        messageTextArea.setEditable(false);
 
-        // Contenu du message
-        JTextArea textArea = new JTextArea(messageText);
-        textArea.setEditable(false);
-        textArea.setWrapStyleWord(true);
-        textArea.setLineWrap(true);
-        textArea.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        textArea.setBackground(new Color(0, 0, 0, 0));
-        textArea.setBorder(null);
+        // Configuration détaillée du style
+        messageTextArea.setStyle(
+                "-fx-control-inner-background: " + (isCurrentUserMessage ? "#e6f3e6" : "white") + "; " + // Couleur de fond interne
+                        "-fx-background-color: " + (isCurrentUserMessage ? "#e6f3e6" : "white") + "; " + // Couleur de fond générale
+                        "-fx-text-box-border: transparent; " + // Bordure transparente
+                        "-fx-control-inner-border: transparent; " + // Bordure interne transparente
+                        "-fx-border-color: transparent; " + // Bordure externe transparente
+                        "-fx-font-size: 13px; " +
+                        "-fx-background-radius: 8px;" +
+                        "-fx-background-insets: 0;"
+        );
 
-        // Alignement du texte en fonction de l'émetteur
-        if (isCurrentUserMessage) {
-            // Pour les messages de l'utilisateur connecté, aligner le texte à droite
-            JPanel textPanel = new JPanel(new BorderLayout());
-            textPanel.setOpaque(false);
-            textPanel.add(textArea, BorderLayout.CENTER);
-            textArea.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
-            contentPanel.add(textPanel);
-        } else {
-            contentPanel.add(textArea);
-        }
-        // Positionnement de l'avatar et du contenu
-        this.add(avatarPanel, BorderLayout.WEST);
-        this.add(contentPanel, BorderLayout.CENTER);
+        messageTextArea.setPrefRowCount(2);
+        messageTextArea.setMaxWidth(300);
 
+        return messageTextArea;
     }
 }
