@@ -8,7 +8,6 @@ import main.java.com.ubo.tp.message.common.Constants;
 import main.java.com.ubo.tp.message.common.PropertiesManager;
 import main.java.com.ubo.tp.message.core.EntityManager;
 import main.java.com.ubo.tp.message.core.database.IDatabase;
-import main.java.com.ubo.tp.message.core.database.IDatabaseObserver;
 import main.java.com.ubo.tp.message.core.directory.IWatchableDirectory;
 import main.java.com.ubo.tp.message.core.directory.WatchableDirectory;
 import main.java.com.ubo.tp.message.core.notification.NotificationController;
@@ -16,11 +15,8 @@ import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.core.session.Session;
 import main.java.com.ubo.tp.message.datamodel.message.IMessage;
-import main.java.com.ubo.tp.message.datamodel.message.Message;
 import main.java.com.ubo.tp.message.datamodel.user.IUser;
 import main.java.com.ubo.tp.message.datamodel.user.User;
-import main.java.com.ubo.tp.message.datamodel.message.MessageList;
-import main.java.com.ubo.tp.message.datamodel.user.UserList;
 import main.java.com.ubo.tp.message.ihm.login.LoginController;
 import main.java.com.ubo.tp.message.ihm.login.LoginView;
 import main.java.com.ubo.tp.message.ihm.menu.MenuController;
@@ -186,7 +182,7 @@ public class MessageApp implements ISessionObserver, Actions {
 
 		this.mMessageListController = new MessageListController(this.mSession, this.mMessageList, this.mUserList);
 		// Création du contrôleur du menu
-		this.mMenuController = new MenuController(this.mSession, this.mDatabase, this);
+		this.mMenuController = new MenuController(this.mSession, this.mMessageList, mUserList, this);
 	}
 
 	protected void initView(){
@@ -277,8 +273,8 @@ public class MessageApp implements ISessionObserver, Actions {
 
 	@Override
 	public void logout(){
-		if (this.getSession().getConnectedUser() != null) {
-			this.getSession().disconnect();
+		if (this.mSession.getConnectedUser() != null) {
+			this.mSession.disconnect();
 		}
 	}
 
@@ -297,7 +293,7 @@ public class MessageApp implements ISessionObserver, Actions {
 	/**
 	 * Initialisation du répertoire d'échange.
 	 *
-	 * @param directoryPath
+	 * @param directoryPath chemain absolue pour le dossier
 	 */
 	protected void initDirectory(String directoryPath) {
 		mExchangeDirectoryPath = directoryPath;
@@ -373,20 +369,6 @@ public class MessageApp implements ISessionObserver, Actions {
 		// Rafraîchit la vue
 		contentPane.revalidate();
 		contentPane.repaint();
-	}
-
-	/**
-	 * Retourne la base de données
-	 */
-	public IDatabase getDatabase() {
-		return mDatabase;
-	}
-
-	/**
-	 * Retourne la session de l'application
-	 */
-	public ISession getSession() {
-		return mSession;
 	}
 
 
