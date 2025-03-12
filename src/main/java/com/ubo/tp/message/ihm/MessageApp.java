@@ -192,7 +192,7 @@ public class MessageApp implements ISessionObserver, Actions {
 
 		this.mUserController = new UserController(this.mSession, this.mEntityManager, this.mUserList);
 
-		this.mMessageComposeController = new MessageComposeController(this.mEntityManager, this.mSession, this.mMessageList, this.mNotificationList);
+		this.mMessageComposeController = new MessageComposeController(this.mEntityManager, this.mSession, this.mMessageList);
 
 		this.mNotificationController = new NotificationController(this.mDatabase, this.mSession, this.mNotificationList, null);
 
@@ -218,7 +218,7 @@ public class MessageApp implements ISessionObserver, Actions {
 		this.notificationButton = new NotificationButton(this.mNotificationController, this.mNotificationList);
 
 		// Création de la vue de contenu principal
-		this.mMainContentView = new MainContentView(this.mSession, this.mNotificationController, this.messageListView, this.messageComposeView, this.userListView, this.notificationView, this.notificationButton);
+		this.mMainContentView = new MainContentView(this.mSession, this.messageListView, this.messageComposeView, this.userListView, this.notificationView, this.notificationButton);
 
 		this.mMenuView = new MenuView(this.mMenuController, this.mSession);
 

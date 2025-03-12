@@ -2,7 +2,6 @@ package main.java.com.ubo.tp.message.ihm.messages.list.cell;
 
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;

@@ -1,7 +1,6 @@
 package main.java.com.ubo.tp.message.ihm.login;
 
 import main.java.com.ubo.tp.message.core.EntityManager;
-import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.datamodel.user.IUser;
 import main.java.com.ubo.tp.message.datamodel.user.User;

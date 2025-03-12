@@ -66,6 +66,7 @@ public class UserList implements IUser {
     @Override
     public void modifiyUser(User userToModify) {
         // Le ré-ajout va écraser l'ancienne copie.
+        users.removeIf(u -> u.mUserTag.equals(userToModify.mUserTag));
         this.users.add(userToModify);
 
         // Notification des observateurs
@@ -138,11 +139,4 @@ public class UserList implements IUser {
             mObservers.remove(observer);
         }
     }
-
-
-
-
-
-
-
 }

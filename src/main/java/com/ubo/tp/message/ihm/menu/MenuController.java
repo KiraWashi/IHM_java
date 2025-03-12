@@ -95,15 +95,6 @@ public class MenuController implements ISessionObserver {
     }
 
     /**
-     * Vérifie si un utilisateur est connecté
-     *
-     * @return true si un utilisateur est connecté, false sinon
-     */
-    public boolean isUserConnected() {
-        return connectedUser != null;
-    }
-
-    /**
      * Retourne l'utilisateur connecté
      *
      * @return L'utilisateur connecté ou null si aucun utilisateur n'est connecté

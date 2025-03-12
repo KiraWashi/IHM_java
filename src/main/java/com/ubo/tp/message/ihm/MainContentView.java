@@ -5,7 +5,6 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import main.java.com.ubo.tp.message.ihm.notifications.NotificationController;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.ihm.messages.compose.MessageComposeView;
 import main.java.com.ubo.tp.message.ihm.messages.list.MessageListView;
@@ -33,11 +32,6 @@ public class MainContentView extends JPanel {
      */
     private JPanel disconnectedPanel;
 
-    /**
-     * Classe qui gère les notification de l'application
-     */
-    private final NotificationController notificationController;
-
     private final MessageListView messageListView;
 
     private final MessageComposeView messageComposeView;
@@ -52,9 +46,8 @@ public class MainContentView extends JPanel {
     /**
      * Constructeur
      */
-    public MainContentView(ISession session, NotificationController notificationController, MessageListView messageListView, MessageComposeView messageComposeView, UserListView userListView, NotificationView notificationView, NotificationButton notificationButton) {
+    public MainContentView(ISession session, MessageListView messageListView, MessageComposeView messageComposeView, UserListView userListView, NotificationView notificationView, NotificationButton notificationButton) {
         this.session = session;
-        this.notificationController = notificationController;
         this.messageListView = messageListView;
         this.messageComposeView = messageComposeView;
         this.userListView = userListView;

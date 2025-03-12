@@ -3,7 +3,7 @@ package main.java.com.ubo.tp.message.ihm;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-
+import static main.java.com.ubo.tp.message.common.Constants.ICON_PATH;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
@@ -14,11 +14,6 @@ import main.java.com.ubo.tp.message.datamodel.user.User;
  * Classe de la vue principale de l'application.
  */
 public class MessageAppMainView extends JFrame{
-
-    /**
-     * Chemin vers les icônes
-     */
-    private static final String ICON_PATH = "MessageApp/src/main/resources/images/";
 
     /**
      * Constructeur.
@@ -93,7 +88,6 @@ public class MessageAppMainView extends JFrame{
         SwingUtilities.invokeLater(() -> MessageAppMainView.super.setVisible(visible));
     }
 
-    // Implémentation des méthodes de l'interface ISessionObserver
     public void login(User connectedUser) {
         // Mise à jour du titre de la fenêtre avec le nom de l'utilisateur
         this.setTitle("MessageApp - " + connectedUser.getName() + " (@" + connectedUser.getUserTag() + ")");

@@ -4,7 +4,6 @@ import main.java.com.ubo.tp.message.core.EntityManager;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.datamodel.message.IMessage;
 import main.java.com.ubo.tp.message.datamodel.message.Message;
-import main.java.com.ubo.tp.message.datamodel.notification.INotification;
 import main.java.com.ubo.tp.message.datamodel.notification.Notification;
 import main.java.com.ubo.tp.message.datamodel.user.User;
 
@@ -25,8 +24,6 @@ public class MessageComposeController {
      */
     private final ISession session;
 
-    private final INotification notificationList;
-
     /**
      * Limite de caractères pour un message
      */
@@ -38,11 +35,10 @@ public class MessageComposeController {
      * @param entityManager Gestionnaire d'entités
      * @param session Session active
      */
-    public MessageComposeController(EntityManager entityManager, ISession session, IMessage message, INotification notificationList) {
+    public MessageComposeController(EntityManager entityManager, ISession session, IMessage message) {
         this.entityManager = entityManager;
         this.session = session;
         this.messageList = message;
-        this.notificationList = notificationList;
     }
 
     /**

@@ -17,7 +17,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-
+import static main.java.com.ubo.tp.message.common.Constants.ICON_PATH;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.datamodel.user.User;
@@ -33,11 +33,6 @@ import java.io.IOException;
  * Version optimisée utilisant davantage de fonctionnalités JavaFX
  */
 public class MenuView extends JMenuBar implements ISessionObserver {
-
-    /**
-     * Chemin vers les icônes
-     */
-    private static final String ICON_PATH = "MessageApp/src/main/resources/images/";
 
     /**
      * Contrôleur du menu
@@ -82,11 +77,6 @@ public class MenuView extends JMenuBar implements ISessionObserver {
     private Image defaultLogo;
 
     /**
-     * Logo par défaut au format Swing
-     */
-    private ImageIcon defaultLogoIcon;
-
-    /**
      * Constructeur.
      *
      * @param menuController Le contrôleur du menu
@@ -100,16 +90,13 @@ public class MenuView extends JMenuBar implements ISessionObserver {
             File logoFile = new File(ICON_PATH + "logo_20.png");
             if (logoFile.exists()) {
                 this.defaultLogo = new Image(new FileInputStream(logoFile));
-                this.defaultLogoIcon = new ImageIcon(logoFile.getAbsolutePath());
             } else {
                 System.err.println("Logo non trouvé: " + logoFile.getAbsolutePath());
                 this.defaultLogo = null;
-                this.defaultLogoIcon = null;
             }
         } catch (IOException e) {
             System.err.println("Impossible de charger le logo par défaut: " + e.getMessage());
             this.defaultLogo = null;
-            this.defaultLogoIcon = null;
         }
 
         // S'abonner aux changements de session

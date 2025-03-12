@@ -4,12 +4,9 @@ import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import javax.swing.*;
 
-import main.java.com.ubo.tp.message.core.session.ISession;
-import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.datamodel.notification.INotification;
 import main.java.com.ubo.tp.message.datamodel.notification.INotificationListObserver;
 import main.java.com.ubo.tp.message.datamodel.notification.Notification;
-import main.java.com.ubo.tp.message.datamodel.user.User;
 
 /**
  * Bouton de notification avec compteur

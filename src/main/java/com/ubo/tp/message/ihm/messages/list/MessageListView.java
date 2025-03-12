@@ -17,16 +17,12 @@ import main.java.com.ubo.tp.message.datamodel.message.Message;
 import main.java.com.ubo.tp.message.datamodel.message.IMessage;
 import main.java.com.ubo.tp.message.datamodel.message.IMessageListObserver;
 import main.java.com.ubo.tp.message.ihm.messages.list.cell.MessageCellView;
+import static main.java.com.ubo.tp.message.common.Constants.ICON_PATH;
 
 /**
  * Composant d'affichage de la liste des messages
  */
 public class MessageListView extends JPanel implements IMessageListObserver {
-
-    /**
-     * Chemin vers les icônes
-     */
-    private static final String ICON_PATH = "MessageApp/src/main/resources/images/";
 
     /**
      * Contrôleur de liste de messages
