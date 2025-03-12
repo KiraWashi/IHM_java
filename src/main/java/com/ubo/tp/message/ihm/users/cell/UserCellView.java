@@ -12,13 +12,16 @@ import javax.swing.border.LineBorder;
 
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
+import main.java.com.ubo.tp.message.datamodel.message.IMessage;
+import main.java.com.ubo.tp.message.datamodel.user.IUser;
+import main.java.com.ubo.tp.message.datamodel.user.IUserListObserver;
 import main.java.com.ubo.tp.message.datamodel.user.User;
 import main.java.com.ubo.tp.message.ihm.users.UserController;
 
 /**
  * Composant représentant une cellule d'utilisateur dans la liste
  */
-public class UserCellView extends JPanel implements ISessionObserver {
+public class UserCellView extends JPanel implements ISessionObserver, IUserListObserver {
 
     /**
      * Utilisateur à afficher
@@ -44,6 +47,8 @@ public class UserCellView extends JPanel implements ISessionObserver {
      * Label pour le nombre de followers
      */
     private JLabel followersLabel;
+
+    private JLabel followingLabel;
 
     /**
      * Constructeur
@@ -141,11 +146,11 @@ public class UserCellView extends JPanel implements ISessionObserver {
         int followersCount = userController.getFollowersCount(user);
         followersLabel = new JLabel(followersCount + " followers");
 
-        int followingCount = userController.getFollowingCount(user);
+        int followingCount = userController.getFollowingCount(user) - 1;
 
-         //Label pour le nombre d'utilisateurs suivis
+        //Label pour le nombre d'utilisateurs suivis
 
-        JLabel followingLabel = new JLabel(followingCount + " abonnements");
+        followingLabel = new JLabel(followingCount + " abonnements");
 
         statsPanel.add(followersLabel);
         statsPanel.add(followingLabel);
@@ -189,6 +194,14 @@ public class UserCellView extends JPanel implements ISessionObserver {
             followButton.setText(isFollowing ? "Ne plus suivre" : "Suivre");
             followButton.setForeground(isFollowing ? new Color(150, 0, 0) : new Color(0, 100, 0));
         }
+
+        // Mise à jour des compteurs
+        int followersCount = userController.getFollowersCount(user);
+        followersLabel.setText(followersCount + " followers");
+
+        int followingCount = userController.getFollowingCount(user);
+        followingLabel.setText(followingCount + " abonnements");
+
     }
 
     /**
@@ -237,6 +250,26 @@ public class UserCellView extends JPanel implements ISessionObserver {
 
     @Override
     public void notifyLogout() {
+        updateUIState();
+    }
+
+    @Override
+    public void notifyUserAdded(User addedUser) {
+        updateUIState();
+    }
+
+    @Override
+    public void notifyUserDeleted(User deletedUser) {
+        updateUIState();
+    }
+
+    @Override
+    public void notifyRefreshUser() {
+        updateUIState();
+    }
+
+    @Override
+    public void notifyUserModified(User modifiedUser) {
         updateUIState();
     }
 }

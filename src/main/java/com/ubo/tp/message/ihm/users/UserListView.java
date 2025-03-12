@@ -44,6 +44,8 @@ public class UserListView extends JPanel implements IUserListObserver {
      */
     private JScrollPane scrollPane;
 
+    private final IUser userList;
+
     /**
      * Constructeur
      *
@@ -53,6 +55,7 @@ public class UserListView extends JPanel implements IUserListObserver {
     public UserListView(UserController userController, ISession session, IUser user) {
         this.userController = userController;
         this.session = session;
+        userList = user;
         user.addObserver(this);
 
         // Initialisation de l'interface
@@ -166,6 +169,9 @@ public class UserListView extends JPanel implements IUserListObserver {
             // Ajouter chaque utilisateur
             for (User user : users) {
                 UserCellView cellView = new UserCellView(user, userController, session);
+                if(user.equals(session.getConnectedUser())){
+                    this.userList.addObserver(cellView);
+                }
                 usersPanel.add(cellView);
 
                 // Ajouter un séparateur

@@ -17,7 +17,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-
+import static main.java.com.ubo.tp.message.common.Constants.ICON_PATH;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.datamodel.user.User;
@@ -33,11 +33,6 @@ import java.io.IOException;
  * Version optimisée utilisant davantage de fonctionnalités JavaFX
  */
 public class MenuView extends JMenuBar implements ISessionObserver {
-
-    /**
-     * Chemin vers les icônes
-     */
-    private static final String ICON_PATH = "MessageApp/src/main/resources/images/";
 
     /**
      * Contrôleur du menu

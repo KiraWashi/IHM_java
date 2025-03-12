@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
-
+import static main.java.com.ubo.tp.message.common.Constants.ICON_PATH;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -23,10 +23,6 @@ import main.java.com.ubo.tp.message.ihm.messages.list.cell.MessageCellView;
  */
 public class MessageListView extends JPanel implements IMessageListObserver {
 
-    /**
-     * Chemin vers les icônes
-     */
-    private static final String ICON_PATH = "MessageApp/src/main/resources/images/";
 
     /**
      * Contrôleur de liste de messages
