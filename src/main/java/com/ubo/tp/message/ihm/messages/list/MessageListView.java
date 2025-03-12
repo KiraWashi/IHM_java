@@ -11,7 +11,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
+import static main.java.com.ubo.tp.message.common.Constants.ICON_PATH;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.datamodel.message.Message;
 import main.java.com.ubo.tp.message.datamodel.message.IMessage;
@@ -23,10 +23,6 @@ import main.java.com.ubo.tp.message.ihm.messages.list.cell.MessageCellView;
  */
 public class MessageListView extends JPanel implements IMessageListObserver {
 
-    /**
-     * Chemin vers les icônes
-     */
-    private static final String ICON_PATH = "MessageApp/src/main/resources/images/";
 
     /**
      * Contrôleur de liste de messages

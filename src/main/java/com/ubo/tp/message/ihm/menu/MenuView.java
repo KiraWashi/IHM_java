@@ -10,6 +10,9 @@ import javax.swing.*;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.core.session.ISessionObserver;
 import main.java.com.ubo.tp.message.datamodel.user.User;
+import main.java.com.ubo.tp.message.common.Constants;
+
+import static main.java.com.ubo.tp.message.common.Constants.ICON_PATH;
 
 /**
  * Vue unifiée pour le menu de l'application.
@@ -20,7 +23,7 @@ public class MenuView extends JMenuBar implements ISessionObserver {
     /**
      * Chemin vers les icônes
      */
-    private static final String ICON_PATH = "MessageApp/src/main/resources/images/";
+
 
     /**
      * Contrôleur du menu
