@@ -4,8 +4,12 @@ import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import javax.swing.*;
 
+import main.java.com.ubo.tp.message.core.session.ISession;
+import main.java.com.ubo.tp.message.core.session.ISessionObserver;
+import main.java.com.ubo.tp.message.datamodel.notification.INotification;
 import main.java.com.ubo.tp.message.datamodel.notification.INotificationListObserver;
 import main.java.com.ubo.tp.message.datamodel.notification.Notification;
+import main.java.com.ubo.tp.message.datamodel.user.User;
 
 /**
  * Bouton de notification avec compteur
@@ -18,10 +22,11 @@ public class NotificationButton extends JButton implements INotificationListObse
     /**
      * Constructeur
      */
-    public NotificationButton(NotificationController notificationController) {
+    public NotificationButton(NotificationController notificationController, INotification notificationList) {
 
         this.unreadCount = notificationController.getUnreadCount();
         this.controller = notificationController;
+        notificationList.addObserver(this);
 
         // S'abonner aux changements de notifications
         notificationController.getNotificationList().addObserver(this);
@@ -100,7 +105,17 @@ public class NotificationButton extends JButton implements INotificationListObse
 
     @Override
     public void notifyNotificationAdded(Notification addedNotification) {
-       this.unreadCount=this.controller.getUnreadCount();
+        this.controller.refreshCount();
+        this.unreadCount= this.controller.getUnreadCount();
+        System.out.println(unreadCount);
+        setIcon(createIcon());
+        repaint();
+    }
+
+    @Override
+    public void notifyRefreshNotif() {
+        this.controller.refreshCount();
+        this.unreadCount= this.controller.getUnreadCount();
         System.out.println(unreadCount);
         setIcon(createIcon());
         repaint();
@@ -108,8 +123,7 @@ public class NotificationButton extends JButton implements INotificationListObse
 
     @Override
     public void notifyNotificationRemoved(Notification removedNotification) {
-        this.unreadCount=this.controller.getUnreadCount();
-        System.out.println(unreadCount);
+        this.unreadCount=0;
         setIcon(createIcon());
         repaint();
     }

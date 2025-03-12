@@ -35,6 +35,35 @@ public class NotificationManager {
         PropertiesManager.writeProperties(props, filename);
     }
 
+    public void deleteAllNotificationFiles() {
+        if (exchangeDirectory == null || exchangeDirectory.isEmpty()) {
+            System.err.println("Répertoire d'échange non configuré");
+            return;
+        }
+
+        File directory = new File(exchangeDirectory);
+        if (!directory.exists() || !directory.isDirectory()) {
+            System.err.println("Répertoire d'échange invalide: " + exchangeDirectory);
+            return;
+        }
+
+        // Parcourir tous les fichiers du répertoire
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                // Supprimer les fichiers avec l'extension .notif
+                if (file.getName().endsWith("notif")) {
+                    boolean deleted = file.delete();
+                    if (!deleted) {
+                        System.err.println("Impossible de supprimer le fichier: " + file.getAbsolutePath());
+                    } else {
+                        System.out.println("Fichier de notification supprimé: " + file.getName());
+                    }
+                }
+            }
+        }
+    }
+
     // Charger les notifications lues
     public Set<UUID> loadReadNotifications(User user) {
         if (user == null || exchangeDirectory == null) return new HashSet<>();

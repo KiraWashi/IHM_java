@@ -1,6 +1,7 @@
 package main.java.com.ubo.tp.message.datamodel.notification;
 
 import main.java.com.ubo.tp.message.datamodel.message.IMessageListObserver;
+import main.java.com.ubo.tp.message.datamodel.message.Message;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,19 @@ public class NotificationList implements INotification {
             for (INotificationListObserver observer : mObservers) {
                 observer.notifyNotificationAdded(notification);
             }
+        }
+    }
+
+    public void refreshMessage() {
+        for (INotificationListObserver observer : mObservers) {
+            observer.notifyRefreshNotif();
+        }
+    }
+
+    public void clear() {
+        List<Notification> notifToRemove = new ArrayList<>(notifications);
+        for (Notification notification : notifToRemove) {
+            removeNotification(notification);
         }
     }
 

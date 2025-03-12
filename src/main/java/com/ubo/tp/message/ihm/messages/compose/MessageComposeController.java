@@ -4,6 +4,8 @@ import main.java.com.ubo.tp.message.core.EntityManager;
 import main.java.com.ubo.tp.message.core.session.ISession;
 import main.java.com.ubo.tp.message.datamodel.message.IMessage;
 import main.java.com.ubo.tp.message.datamodel.message.Message;
+import main.java.com.ubo.tp.message.datamodel.notification.INotification;
+import main.java.com.ubo.tp.message.datamodel.notification.Notification;
 import main.java.com.ubo.tp.message.datamodel.user.User;
 
 /**
@@ -23,6 +25,8 @@ public class MessageComposeController {
      */
     private final ISession session;
 
+    private final INotification notificationList;
+
     /**
      * Limite de caractères pour un message
      */
@@ -34,10 +38,11 @@ public class MessageComposeController {
      * @param entityManager Gestionnaire d'entités
      * @param session Session active
      */
-    public MessageComposeController(EntityManager entityManager, ISession session, IMessage message) {
+    public MessageComposeController(EntityManager entityManager, ISession session, IMessage message, INotification notificationList) {
         this.entityManager = entityManager;
         this.session = session;
         this.messageList = message;
+        this.notificationList = notificationList;
     }
 
     /**
@@ -70,8 +75,12 @@ public class MessageComposeController {
             // Ajout du message à la base de donnée
             messageList.addMessage(newMessage);
 
+            Notification newNotif = new Notification(newMessage, currentUser);
+
             // Génération du fichier message
             entityManager.writeMessageFile(newMessage);
+
+            entityManager.writeNotifFile(newNotif);
 
             return null; // Pas d'erreur
         } catch (Exception e) {

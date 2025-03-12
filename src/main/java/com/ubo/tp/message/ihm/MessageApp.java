@@ -31,6 +31,7 @@ import main.java.com.ubo.tp.message.ihm.messages.compose.MessageComposeControlle
 import main.java.com.ubo.tp.message.ihm.messages.compose.MessageComposeView;
 import main.java.com.ubo.tp.message.ihm.messages.list.MessageListController;
 import main.java.com.ubo.tp.message.ihm.messages.list.MessageListView;
+import main.java.com.ubo.tp.message.ihm.notifications.NotificationButton;
 import main.java.com.ubo.tp.message.ihm.notifications.NotificationController;
 import main.java.com.ubo.tp.message.ihm.notifications.NotificationView;
 import main.java.com.ubo.tp.message.ihm.users.UserController;
@@ -137,18 +138,19 @@ public class MessageApp implements ISessionObserver, Actions {
 
 	protected NotificationView notificationView;
 
+	protected NotificationButton notificationButton;
+
 
 	/**
 	 * Constructeur.
 	 *
 	 */
-	public MessageApp(IDatabase database, IMessage message, IUser user, EntityManager entityManager) {
+	public MessageApp(IDatabase database, IMessage message, IUser user, INotification notif, EntityManager entityManager) {
 		this.mDatabase = database;
 		this.mEntityManager = entityManager;
 		this.mSession = new Session();
 		this.mSession.addObserver(this);
-		this.mMessageList = new MessageList();
-		this.mNotificationList = new NotificationList();
+		this.mNotificationList = notif;
 		this.mMessageList = message;
 		this.mUserList = user;
 	}
@@ -190,9 +192,9 @@ public class MessageApp implements ISessionObserver, Actions {
 
 		this.mUserController = new UserController(this.mSession, this.mEntityManager, this.mUserList);
 
-		this.mMessageComposeController = new MessageComposeController(this.mEntityManager, this.mSession, this.mMessageList);
+		this.mMessageComposeController = new MessageComposeController(this.mEntityManager, this.mSession, this.mMessageList, this.mNotificationList);
 
-		this.mNotificationController = new NotificationController(this.mDatabase, this.mSession, null);
+		this.mNotificationController = new NotificationController(this.mDatabase, this.mSession, this.mNotificationList, null);
 
 		this.mMessageListController = new MessageListController(this.mSession, this.mMessageList, this.mUserList);
 		// Création du contrôleur du menu
@@ -213,8 +215,10 @@ public class MessageApp implements ISessionObserver, Actions {
 
 		this.notificationView = new NotificationView(this.mNotificationController);
 
+		this.notificationButton = new NotificationButton(this.mNotificationController, this.mNotificationList);
+
 		// Création de la vue de contenu principal
-		this.mMainContentView = new MainContentView(this.mSession, this.mNotificationController, this.messageListView, this.messageComposeView, this.userListView, this.notificationView);
+		this.mMainContentView = new MainContentView(this.mSession, this.mNotificationController, this.messageListView, this.messageComposeView, this.userListView, this.notificationView, this.notificationButton);
 
 		this.mMenuView = new MenuView(this.mMenuController, this.mSession);
 
@@ -233,7 +237,7 @@ public class MessageApp implements ISessionObserver, Actions {
 		mMenuView.setParentComponent(this.mMainView);
 		this.mMainView.setJMenuBar(mMenuView);
 
-		this.mDatabase.addObserver(this.mNotificationController);
+		//this.mDatabase.addObserver(this.mNotificationController);
 
 		// Ajout de la vue de login au contentPane
 		Container contentPane = this.mMainView.getContentPane();

@@ -13,8 +13,11 @@ import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.core.directory.IWatchableDirectoryObserver;
 import main.java.com.ubo.tp.message.datamodel.message.IMessage;
 import main.java.com.ubo.tp.message.datamodel.message.Message;
+import main.java.com.ubo.tp.message.datamodel.notification.INotification;
+import main.java.com.ubo.tp.message.datamodel.notification.Notification;
 import main.java.com.ubo.tp.message.datamodel.user.IUser;
 import main.java.com.ubo.tp.message.datamodel.user.User;
+import main.java.com.ubo.tp.message.ihm.notifications.NotificationButton;
 
 /**
  * Classe de gestion de la mise à jour de la base de données et de génération
@@ -27,6 +30,8 @@ public class EntityManager implements IWatchableDirectoryObserver {
 	protected final IMessage mMessageList;
 
 	protected final IUser mUserList;
+
+	protected final INotification mNotifList;
 
 	/**
 	 * Chemin d'accès au répertoire d'échange.
@@ -48,15 +53,19 @@ public class EntityManager implements IWatchableDirectoryObserver {
 	 */
 	protected final Map<String, User> mUserFileMap;
 
+	protected final Map<String, Notification> mNotifFileMap;
+
 	/**
 	 * Constructeur.
 	 */
-	public EntityManager(IMessage message, IUser user) {
+	public EntityManager(IMessage message, IUser user, INotification mNotifList) {
 		this.mMessageList = message;
 		this.mUserList = user;
-		this.mUserMap = new HashMap<>();
+        this.mNotifList = mNotifList;
+        this.mUserMap = new HashMap<>();
 		this.mMessageFileMap = new HashMap<>();
 		this.mUserFileMap = new HashMap<>();
+		this.mNotifFileMap = new HashMap<>();
 
 
 		// Ajout de l'utilisateur inconnu
@@ -115,6 +124,23 @@ public class EntityManager implements IWatchableDirectoryObserver {
 
 				// MAJ de la map
 				this.mMessageFileMap.put(messageFile.getName(), newMessage);
+			}
+		}
+		// Récupération des fichiers de Messages.
+		Set<File> notifFiles = this.getNotifFiles(newFiles);
+
+		// Parcours de la liste des nouveaux messages
+		for (File notifFile : notifFiles) {
+
+			// Extraction du nouveau message
+			Notification newNotif = this.extractNotif(notifFile);
+
+			if (newNotif != null) {
+				// Ajout du message
+				this.mNotifList.addNotification(newNotif);
+
+				// MAJ de la map
+				this.mNotifFileMap.put(notifFile.getName(), newNotif);
 			}
 		}
 	}
@@ -228,6 +254,10 @@ public class EntityManager implements IWatchableDirectoryObserver {
 		return DataFilesManager.readMessage(messageFile, this.mUserMap);
 	}
 
+	protected Notification extractNotif(File notifFile) {
+		return DataFilesManager.readNotif(notifFile, this.mUserMap);
+	}
+
 	/**
 	 * Extraction de tous les utilisateur d'une liste de fichier.
 	 *
@@ -282,6 +312,16 @@ public class EntityManager implements IWatchableDirectoryObserver {
 	}
 
 	/**
+	 * Retourne la liste des fichiers de type 'Message' parmis la liste des fichiers
+	 * donnés.
+	 *
+	 * @param allFiles , Liste complète des fichiers.
+	 */
+	protected Set<File> getNotifFiles(Set<File> allFiles) {
+		return this.getSpecificFiles(allFiles, Constants.NOTIFICATION_FILE_EXTENSION);
+	}
+
+	/**
 	 * Retourne la liste des fichiers ayant une extension particulière parmis la
 	 * liste des fichiers donnés.
 	 *
@@ -323,6 +363,18 @@ public class EntityManager implements IWatchableDirectoryObserver {
 
 			// Génération du fichier de propriété
 			DataFilesManager.writeMessageFile(message, messageFileName);
+		} else {
+			throw new RuntimeException("Le répertoire d'échange n'est pas configuré !");
+		}
+	}
+
+	public void writeNotifFile(Notification notif) {
+		if (mDirectoryPath != null) {
+			// Récupération du chemin pour le fichier à générer
+			String messageFileName = this.getFileName(notif.getmUuid(), Constants.NOTIFICATION_FILE_EXTENSION);
+
+			// Génération du fichier de propriété
+			DataFilesManager.writeNotifFile(notif, messageFileName);
 		} else {
 			throw new RuntimeException("Le répertoire d'échange n'est pas configuré !");
 		}

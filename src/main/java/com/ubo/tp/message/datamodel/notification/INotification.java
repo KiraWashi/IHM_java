@@ -2,6 +2,8 @@ package main.java.com.ubo.tp.message.datamodel.notification;
 
 import main.java.com.ubo.tp.message.datamodel.message.IMessageListObserver;
 
+import java.util.List;
+
 /**
  * Interface observer d'une notification
  */
@@ -21,6 +23,10 @@ public interface INotification {
      */
     void removeObserver(INotificationListObserver observer);
 
+    void clear();
+
+    void refreshMessage();
+
     /**
      * Ajoute une notification dans la liste
      * @param notification
@@ -32,4 +38,8 @@ public interface INotification {
      * @param notification
      */
     void removeNotification(Notification notification);
+
+    List<Notification> getNotifications();
+
+    void markAllNotificationsAsRead();
 }

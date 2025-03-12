@@ -34,7 +34,7 @@ public class NotificationDatabaseObserver implements IDatabaseObserver {
 
             // Si le message provient d'un utilisateur que l'utilisateur actuel suit
             if (currentUser.isFollowing(sender) && !currentUser.equals(sender)) {
-                notificationController.addNotification(new Notification(addedMessage, sender));
+                //notificationController.addNotification(new Notification(addedMessage, sender));
             }
         }
     }

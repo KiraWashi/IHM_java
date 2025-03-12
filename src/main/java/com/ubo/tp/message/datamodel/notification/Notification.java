@@ -5,6 +5,7 @@ import main.java.com.ubo.tp.message.datamodel.message.Message;
 import main.java.com.ubo.tp.message.datamodel.user.User;
 
 import java.util.Date;
+import java.util.UUID;
 
 /**
  * Représente une notification dans l'application
@@ -13,6 +14,8 @@ public class Notification {
 
     private Message message;
     private User sender;
+
+    protected final UUID mUuid;
     private boolean read;
     private Date creationDate;
 
@@ -24,6 +27,7 @@ public class Notification {
      */
     public Notification(Message message, User sender) {
         this.message = message;
+        this.mUuid = UUID.randomUUID();
         this.sender = sender;
         this.read = false;
         this.creationDate = new Date(message.getEmissionDate());
@@ -35,6 +39,10 @@ public class Notification {
 
     public User getSender() {
         return sender;
+    }
+
+    public UUID getmUuid() {
+        return mUuid;
     }
 
     public boolean isRead() {

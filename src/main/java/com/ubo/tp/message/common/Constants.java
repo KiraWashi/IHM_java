@@ -13,6 +13,8 @@ public class Constants {
 	 */
 	public static final String USER_FILE_EXTENSION = "usr";
 
+	public static final String NOTIFICATION_FILE_EXTENSION = "notif";
+
 	/**
 	 * Extension des fichiers de propriété des Message
 	 */

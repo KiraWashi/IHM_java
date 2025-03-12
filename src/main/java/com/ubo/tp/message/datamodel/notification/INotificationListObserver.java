@@ -11,6 +11,8 @@ public interface INotificationListObserver {
      */
     void notifyNotificationAdded(Notification addedNotification);
 
+    void notifyRefreshNotif();
+
     /**
      * Notification lorsqu'une Notification est supprimée.
      *

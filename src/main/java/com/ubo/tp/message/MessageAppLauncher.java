@@ -5,6 +5,8 @@ import main.java.com.ubo.tp.message.core.database.Database;
 import main.java.com.ubo.tp.message.core.database.IDatabase;
 import main.java.com.ubo.tp.message.datamodel.message.IMessage;
 import main.java.com.ubo.tp.message.datamodel.message.MessageList;
+import main.java.com.ubo.tp.message.datamodel.notification.INotification;
+import main.java.com.ubo.tp.message.datamodel.notification.NotificationList;
 import main.java.com.ubo.tp.message.datamodel.user.IUser;
 import main.java.com.ubo.tp.message.datamodel.user.UserList;
 import main.java.com.ubo.tp.message.ihm.MessageApp;
@@ -32,15 +34,16 @@ public class MessageAppLauncher {
 		IDatabase database = new Database();
 		IUser user = new UserList();
 		IMessage message = new MessageList();
+		INotification notif = new NotificationList();
 
-		EntityManager entityManager = new EntityManager(message, user);
+		EntityManager entityManager = new EntityManager(message, user, notif);
 
 		if (IS_MOCK_ENABLED) {
 			MessageAppMock mock = new MessageAppMock(database, entityManager);
 			mock.showGUI();
 		}
 
-		MessageApp messageApp = new MessageApp(database, message, user, entityManager);
+		MessageApp messageApp = new MessageApp(database, message, user, notif, entityManager);
 		messageApp.init();
 		messageApp.show();
 

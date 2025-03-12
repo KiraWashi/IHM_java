@@ -46,17 +46,20 @@ public class MainContentView extends JPanel {
 
     private final NotificationView notificationView;
 
+    private final NotificationButton notificationButton;
+
 
     /**
      * Constructeur
      */
-    public MainContentView(ISession session, NotificationController notificationController, MessageListView messageListView, MessageComposeView messageComposeView, UserListView userListView, NotificationView notificationView) {
+    public MainContentView(ISession session, NotificationController notificationController, MessageListView messageListView, MessageComposeView messageComposeView, UserListView userListView, NotificationView notificationView, NotificationButton notificationButton) {
         this.session = session;
         this.notificationController = notificationController;
         this.messageListView = messageListView;
         this.messageComposeView = messageComposeView;
         this.userListView = userListView;
         this.notificationView = notificationView;
+        this.notificationButton = notificationButton;
 
         // Initialisation de l'interface
         this.initUI();
@@ -72,7 +75,7 @@ public class MainContentView extends JPanel {
         this.setLayout(new BorderLayout());
 
         // Bouton de notification
-        NotificationButton notificationButton = new NotificationButton(notificationController);
+
 
         // Panneau principal avec onglets
         tabbedPane = new JTabbedPane();

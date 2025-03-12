@@ -1,9 +1,11 @@
 package main.java.com.ubo.tp.message.ihm.notifications;
 
+import java.io.File;
 import java.util.*;
 
 import main.java.com.ubo.tp.message.core.notification.NotificationManager;
 import main.java.com.ubo.tp.message.datamodel.message.Message;
+import main.java.com.ubo.tp.message.datamodel.notification.INotification;
 import main.java.com.ubo.tp.message.datamodel.notification.Notification;
 import main.java.com.ubo.tp.message.datamodel.notification.NotificationList;
 
@@ -16,34 +18,28 @@ import main.java.com.ubo.tp.message.datamodel.user.User;
 /**
  * Gestionnaire des notifications
  */
-public class NotificationController implements IDatabaseObserver, ISessionObserver {
+public class NotificationController implements ISessionObserver {
 
     private final IDatabase database;
-    private final NotificationList notificationList;
+    private final INotification notificationList;
     private User connectedUser;
 
     private NotificationManager notificationManager;
     private Set<UUID> readMessageIds = new HashSet<>();
 
+    private int count;
+
     /**
      * Constructeur
      */
-    public NotificationController(IDatabase database, ISession session, String exchangeDirectory) {
+    public NotificationController(IDatabase database, ISession session, INotification notif, String exchangeDirectory) {
         this.database = database;
-        this.notificationList = new NotificationList();
+        this.notificationList = notif;
         this.notificationManager = new NotificationManager(exchangeDirectory);
+        this.count = 0;
 
         // S'enregistrer comme observateur
         session.addObserver(this);
-        this.database.addObserver(this);
-    }
-
-    /**
-     * Ajoute une notification
-     */
-    public void addNotification(Notification notification) {
-        this.notificationList.addNotification(notification);
-        // La notification des observateurs est gérée par les callbacks de la NotificationList
     }
 
     /**
@@ -51,7 +47,13 @@ public class NotificationController implements IDatabaseObserver, ISessionObserv
      */
     public void markAllAsRead() {
         this.notificationList.markAllNotificationsAsRead();
-        notificationManager.saveReadNotifications(connectedUser, readMessageIds);
+        notificationManager.deleteAllNotificationFiles();
+        for (Notification notification : this.getNotificationsUser()) {
+            notificationList.removeNotification(notification);
+        }
+        notificationList.clear();
+        this.count = 0;
+        //notificationManager.saveReadNotifications(connectedUser, readMessageIds);
     }
 
     /**
@@ -65,70 +67,36 @@ public class NotificationController implements IDatabaseObserver, ISessionObserv
      * Retourne le nombre de notifications non lues
      */
     public int getUnreadCount() {
-        int count = 0;
+        return count;
+    }
 
+    public void refreshCount(){
+        this.count = 0;
         for (Notification notification : notificationList.getNotifications()) {
-            if (!notification.isRead()) {
-                count++;
+            if (connectedUser != null && connectedUser.isFollowing(notification.getSender())) {
+                this.count++;
             }
         }
+    }
 
-        return count;
+    public List<Notification> getNotificationsUser(){
+        ArrayList<Notification> notifs = new ArrayList<>();
+        for (Notification notification : notificationList.getNotifications()) {
+            if (connectedUser != null && connectedUser.isFollowing(notification.getSender())) {
+                notifs.add(notification);
+            }
+        }
+        return  notifs;
     }
 
 
 
     @Override
     public void notifyLogout() {
-        this.connectedUser = null;
 
-        // Récupérer toutes les notifications pour les retirer une par une
-        List<Notification> allNotifications = new ArrayList<>(notificationList.getNotifications());
-        for (Notification notification : allNotifications) {
-            notificationList.removeNotification(notification);
-        }
     }
 
-    /**
-     * Méthodes de IDatabaseObserver
-     */
-    @Override
-    public void notifyMessageAdded(Message addedMessage) {
-        if (connectedUser != null) {
-            User sender = addedMessage.getSender();
 
-            // Version modifiée pour test : notifier pour tout message qui n'est pas de l'utilisateur lui-même
-            if (!sender.equals(connectedUser)) {
-                Notification notification = new Notification(addedMessage, sender);
-                addNotification(notification);
-            }
-        }
-    }
-
-    @Override
-    public void notifyMessageDeleted(Message deletedMessage) {
-        // Non implémenté pour cet exemple
-    }
-
-    @Override
-    public void notifyMessageModified(Message modifiedMessage) {
-        // Non implémenté pour cet exemple
-    }
-
-    @Override
-    public void notifyUserAdded(User addedUser) {
-        // Non implémenté pour cet exemple
-    }
-
-    @Override
-    public void notifyUserDeleted(User deletedUser) {
-        // Non implémenté pour cet exemple
-    }
-
-    @Override
-    public void notifyUserModified(User modifiedUser) {
-        // Non implémenté pour cet exemple
-    }
 
     /**
      * Permet de charger les notifications de l'utilisateur actif
@@ -175,10 +143,7 @@ public class NotificationController implements IDatabaseObserver, ISessionObserv
         this.connectedUser = connectedUser;
 
         // Vider la liste de notifications actuelle
-        List<Notification> currentNotifications = new ArrayList<>(notificationList.getNotifications());
-        for (Notification notification : currentNotifications) {
-            notificationList.removeNotification(notification);
-        }
+        this.notificationList.refreshMessage();
 
         // Charger les notifications lues pour l'utilisateur
         this.readMessageIds = notificationManager.loadReadNotifications(connectedUser);
@@ -220,8 +185,9 @@ public class NotificationController implements IDatabaseObserver, ISessionObserv
     /**
      * Retourne la liste de notifications gérée par ce contrôleur
      */
-    public NotificationList getNotificationList() {
+    public INotification getNotificationList() {
         return notificationList;
     }
+
 
 }

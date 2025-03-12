@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import main.java.com.ubo.tp.message.datamodel.message.Message;
+import main.java.com.ubo.tp.message.datamodel.notification.Notification;
 import main.java.com.ubo.tp.message.datamodel.user.User;
 
 /**
@@ -158,6 +159,29 @@ public class DataFilesManager {
 		return message;
 	}
 
+	public static Notification readNotif(File notifFile, Map<UUID, User> userMap) {
+		Notification notif = null;
+
+		if (notifFile != null && notifFile.getName().endsWith(Constants.NOTIFICATION_FILE_EXTENSION)
+				&& notifFile.exists()) {
+			Properties properties = PropertiesManager.loadProperties(notifFile.getAbsolutePath());
+
+			String uuid = properties.getProperty(PROPERTY_KEY_MESSAGE_UUID, UUID.randomUUID().toString());
+			String senderUuid = properties.getProperty(PROPERTY_KEY_MESSAGE_SENDER,
+					Constants.UNKNONWN_USER_UUID.toString());
+			String emissionDateStr = properties.getProperty(PROPERTY_KEY_MESSAGE_DATE, "0");
+			String text = properties.getProperty(PROPERTY_KEY_MESSAGE_TEXT, "NoText");
+
+
+			User sender = getUserFromUuid(senderUuid, userMap);
+			Message mess = new Message(sender, text);
+
+			notif = new Notification(mess, sender);
+		}
+
+		return notif;
+	}
+
 	/**
 	 * Génération d'un fichier pour un Message ({@link Message}).
 	 *
@@ -174,6 +198,19 @@ public class DataFilesManager {
 
 		PropertiesManager.writeProperties(properties, destFileName);
 	}
+
+	public static void writeNotifFile(Notification notification, String destFileName) {
+		Properties properties = new Properties();
+
+		properties.setProperty(PROPERTY_KEY_MESSAGE_UUID, notification.getmUuid().toString());
+		properties.setProperty(PROPERTY_KEY_MESSAGE_SENDER, notification.getSender().getUuid().toString());
+		properties.setProperty(PROPERTY_KEY_MESSAGE_DATE, String.valueOf(notification.getCreationDate()));
+		properties.setProperty(PROPERTY_KEY_MESSAGE_TEXT, notification.getMessage().getText());
+
+		PropertiesManager.writeProperties(properties, destFileName);
+	}
+
+
 
 	/**
 	 * Récupération de l'utilisateur identifié.

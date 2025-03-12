@@ -90,7 +90,7 @@ public class NotificationView extends JPanel implements INotificationListObserve
         notificationsPanel.setVisible(false);
         notificationsPanel.removeAll();
 
-        List<Notification> notifications = this.controller.getNotificationList().getNotifications();
+        List<Notification> notifications = this.controller.getNotificationsUser();
 
         if (notifications.isEmpty()) {
             JLabel emptyLabel = new JLabel("Aucune notification");
@@ -203,6 +203,11 @@ public class NotificationView extends JPanel implements INotificationListObserve
 
     @Override
     public void notifyNotificationAdded(Notification addedNotification) {
+        SwingUtilities.invokeLater(this::refreshNotifications);
+    }
+
+    @Override
+    public void notifyRefreshNotif() {
         SwingUtilities.invokeLater(this::refreshNotifications);
     }
 
